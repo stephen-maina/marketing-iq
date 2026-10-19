@@ -17,6 +17,12 @@ copilot plugin list --json
 copilot --agent marketing-iq:marketing-iq
 ```
 
+This direct repository install was exercised with Copilot CLI 1.0.98. That
+version accepts it but warns that direct installs are deprecated in favor of
+marketplace installs in a future release. This repository does not yet provide
+a marketplace; the clone-and-load alternative below avoids persistent direct
+installation. No future CLI compatibility is claimed.
+
 Start the last command in the workspace where you want to keep your decisions,
 not the installed plugin directory. In an interactive session, `/agent` lets
 you check/select the Marketing IQ agent; `/skills list` shows its three skills.
@@ -105,8 +111,11 @@ Do not assume another CLI loads the Copilot-specific agent.
 
 The plugin does not install/authenticate connectors, grant access, guarantee
 model compliance, send invitations or publish marketing material. It cannot
-turn synthetic evidence into live product truth. See the demonstration report
-in the source repository for actual model-run results and remaining gaps.
+turn synthetic evidence into live product truth. See
+`docs\integration\MarketingIQ_Plugin_Demonstration.md` in the source repository
+for actual model-run results and remaining gaps. Remote installation, clean
+consumer skill discovery and downloaded Node helper execution were exercised
+separately; these do not establish live connector access or model compliance.
 
 ## Development
 
