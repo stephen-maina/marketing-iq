@@ -1,0 +1,22 @@
+{
+  "name": "marketing-iq",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsc -p tools/MarketingIQ.Portable/tsconfig.json",
+    "test": "npm run build && node --test tests/portable/*.test.mjs tests/hosted-preflight/review-packet.test.mjs",
+    "package": "npm run build && node tools/MarketingIQ.Portable/package.mjs",
+    "build:plugin": "npm run build && node tools/MarketingIQ.Portable/plugin.mjs",
+    "test:plugin": "npm run build:plugin && node --test tests/native-plugin/*.test.mjs",
+    "test:package": "npm run package && node --test tests/portable-package/*.test.mjs",
+    "test:parity": "npm run build && node --test tests/portable-parity/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmitOnError": true,
+    "rootDir": "src",
+    "outDir": "../../.github/skills/marketing-iq/scripts/portable",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}

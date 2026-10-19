@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "repeatCount": 1,
+  "cases": [
+    {
+      "id": "launch-synthetic",
+      "prompt": "Explicitly use the bundled synthetic local-file example, not WorkIQ or live sources. For the fictional Harbor service, assess internal-preview readiness and compare a readiness briefing with a product demo for service owners in Europe. Recommend the more useful activity and explain what attendees would take away. Keep evidence and output clearly labelled synthetic/internal review only. Leave the direction unsaved."
+    },
+    {
+      "id": "field-proposed-synthetic",
+      "prompt": "Explicitly use the bundled synthetic local-file example, not WorkIQ or live sources. My proposed direction is a Harbor readiness briefing for service owners in Europe: help them identify documentation-review questions and unknown support-sign-off needs, not announce an approved launch. Draft an invitation, exactly three talk points and a neutral follow-up. The date, delivery link and registration link are not decided. Keep this clearly synthetic/internal review only. Do not save or accept the proposal."
+    },
+    {
+      "id": "connector-unavailable",
+      "prompt": "Assess Harbor launch readiness for service owners in Europe. Explicitly use only adapter unavailable-demo-connector with retrieval tool unavailable-demo-connector/retrieve, scoped to https://sources.invalid/harbor. Do not use WorkIQ, local files, web search or another connector as fallback. Explain the actual setup gap if this selected tool is not exposed. Do not invent source content or save a direction."
+    }
+  ]
+}

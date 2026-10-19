@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+harness/TestResults/*.trx
+tests/MarketingIQ.Skill.Tests/TestResults/*.trx
+local-data/
+node_modules/
+artifacts/

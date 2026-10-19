@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "adapterId": "local-file",
+  "outcome": "ok",
+  "scope": { "kind": "container", "url": "https://sample.invalid/harbor" },
+  "sources": [
+    {
+      "sourceId": "synthetic-harbor-note",
+      "sourceUrl": "https://sample.invalid/harbor/readiness",
+      "sourceKind": "local-file",
+      "evidenceKind": "document-excerpt",
+      "coverage": "partial-body",
+      "retrievedThisSession": true,
+      "body": "SYNTHETIC FIXTURE ONLY. Harbor is a fictional service. Its sample internal-preview checklist requires documentation review. Support sign-off is unknown. This note does not approve launch or publication.",
+      "versionId": null,
+      "locator": null,
+      "restrictions": { "access": "allowed", "usage": "internal-review", "sensitivityLabel": "Synthetic" },
+      "provenance": { "tool": "local-file-read", "observedAt": "2026-10-19T00:00:00Z", "currentResponse": true, "locationUrl": null }
+    }
+  ]
+}

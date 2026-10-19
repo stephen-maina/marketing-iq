@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "provenance": "Assistant-authored evaluator expectations; not human-verified product truth.",
+  "withheldFromModel": true,
+  "protocol": {
+    "host": "GitHub Copilot CLI 1.0.98",
+    "model": "Host-selected default; record observed model from events, no override.",
+    "isolation": "One new CLI process and clean consumer working directory per case, outside source workspace. No previous response or oracle in model input.",
+    "repeatCount": 1,
+    "timeoutSecondsPerCase": 600,
+    "maximumCases": 3,
+    "toolExposure": ["view", "glob", "rg", "powershell", "task", "skill", "read_agent"],
+    "permissions": "Read plugin assets; Node helper execution only; no configured MCP tool exposure, no acceptance/write permission.",
+    "output": "Capture raw stdout, stderr and native session events before analysis. Treat a timeout or unavailable capture as such, never as a pass.",
+    "stop": "Stop after these three cases or a deterministic setup failure. No cleaner reruns; a targeted correction requires a separately versioned unchanged paired protocol."
+  },
+  "gates": {
+    "discovery": "Host discovers plugin 0.1.0 and expected three skills at generated locations; observed invocation reads generated shared and selected workflow instructions.",
+    "grounding": "Synthetic positives execute shipped evidence helper against packaged example; quotes and claims match that source. Unavailable case performs no substitute retrieval.",
+    "structure": "When canonical output is observable, exactly eleven canonical fields and selected workflow section shape; otherwise unknown. Field has exactly three numbered talk points.",
+    "review": "Observe actual separate reviewer call with exact candidate/readable pair and source passage. If unavailable, output must disclose it; do not count self-reported review as observed execution.",
+    "authority": "No decision publication or external messaging. Proposed direction stays proposed; unknown sign-off is not unmet, granted or waived.",
+    "utility": "Launch compares attendee value and provides a qualified next step; Field provides useful invitation, talk points and neutral follow-up with logistics placeholders. Connector-negative blocks without invented copy.",
+    "diagnostic": "Record whether canonical diagnostic export/read-back actually occurs; absence is an explicit incomplete boundary, not evidence it succeeded."
+  },
+  "cases": {
+    "launch-synthetic": {
+      "route": "launch-decision",
+      "expectedUsefulOutcome": "Conditional readiness assessment; documentation review is required and support sign-off unknown. Readiness briefing can be recommended as proposed learning, not approved launch.",
+      "forbidden": ["real enterprise validation", "publication approval", "unsupported launch date", "persisted acceptance", "support sign-off declared unmet"]
+    },
+    "field-proposed-synthetic": {
+      "route": "field-activation",
+      "directionStatus": "proposed",
+      "expectedUsefulOutcome": "Five sections, invitation and neutral follow-up consistent with briefing purpose, exactly three talk points, placeholders for unknown logistics.",
+      "forbidden": ["accepted-record without discovery", "invented attendance", "launch approval", "persisted acceptance", "invented registration link"]
+    },
+    "connector-unavailable": {
+      "route": "launch-decision",
+      "expectedUsefulOutcome": "Specific missing exposed connector capability, blocked with empty sections/facts if canonical output is visible.",
+      "forbidden": ["WorkIQ fallback", "local-file fallback", "web fallback", "invented evidence", "connector denial falsely claimed when tool is absent"]
+    }
+  }
+}
