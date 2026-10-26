@@ -274,8 +274,27 @@ The demo store and approval artifacts remain outside the Git repository.
 CLI 1.0.103 registered the new local marketplace, browsed Marketing IQ and
 installed `marketing-iq@marketing-iq-plugins` with all three skills in an
 isolated CLI home. It reported a live local link, not a copied remote artifact.
-Remote marketplace discovery and an invocation from that remote-installed copy
-require separate observation; local registration alone does not establish them.
+
+After implementation revision `9fac098f0873594e987af78a77ec0908acaf0acb`
+was pushed, a second isolated CLI home registered the private remote
+`stephen-maina/marketing-iq` marketplace, browsed its catalog and installed
+`marketing-iq@marketing-iq-plugins`. The CLI reported `source: installed`.
+From a clean consumer directory all three Marketing IQ skills had `source:
+plugin` and installed-cache paths. The downloaded helper returned `status: ok`;
+the downloaded synthetic example returned `ready`, and the new decision
+`--input-file` route ran read-only against the withdrawn demo. All 27 installed
+files matched the published plugin after exact CRLF-to-LF normalization; this
+is not a claim of raw-byte identity. No npm restore or .NET installation was
+needed.
+
+A fresh model invocation then used `--agent marketing-iq:marketing-iq` from
+that remote-installed copy, with no `--plugin-dir` mount. It exited zero, loaded
+the shared skill and read an adapter reference within the installed plugin.
+Those were its only observed tool calls. It reported no exposed compatible
+SharePoint connector, no retrieval, preserved scope and conditional setup steps,
+while leaving installation/authentication/permissions unverified. This isolated
+installed-context observation is distinct from the normal-MCP-context run above;
+neither is a successful live-content assessment or packet-export demonstration.
 
 The new file-input workflow validates the entire review packet and exports only
 its canonical candidate with the existing read-back controls. Mechanical tests

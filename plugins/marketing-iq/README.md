@@ -18,11 +18,14 @@ copilot plugin list --json
 copilot --agent marketing-iq:marketing-iq
 ```
 
-The repository supplies `.github\plugin\marketplace.json`. Its local-path
-registration, catalog discovery and marketplace-name installation were exercised
-with Copilot CLI 1.0.103 in an isolated CLI home. The CLI reported a live local
-link, not a remote download. Access to this private repository is still required
-for remote registration; that path must be verified separately.
+The repository supplies `.github\plugin\marketplace.json`. Both local-path and
+private remote registration, catalog discovery and marketplace-name installation
+were exercised with Copilot CLI 1.0.103 in isolated CLI homes. Local registration
+produced a live link; remote registration produced an installed copy. All three
+skills were discovered from that installed cache, and downloaded helpers ran
+without npm restore. Access to this private repository is still required.
+An invocation from the remote-installed copy also produced the expected
+missing-exposed-connector guidance; it did not retrieve live SharePoint content.
 
 The earlier direct repository install
 (`copilot plugin install stephen-maina/marketing-iq:plugins/marketing-iq`)
