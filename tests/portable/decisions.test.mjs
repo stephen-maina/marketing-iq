@@ -15,6 +15,15 @@ async function setup(t) {
 }
 const codes = result => result.value.diagnostics;
 
+async function storeBytes(directory) {
+    const result = {};
+    for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name);
+        result[entry.name] = entry.isDirectory() ? await storeBytes(path) : (await fs.readFile(path)).toString("base64");
+    }
+    return result;
+}
+
 test("confirmation, exact identity and read-only gate precede writes", async t => {
     const { store, call } = await setup(t), request = publish(record());
     for (const value of [undefined, null, { ...request.acceptance, confirmed: false }]) {
@@ -27,6 +36,99 @@ test("confirmation, exact identity and read-only gate precede writes", async t =
     assert.equal(call(request).value.status, "published");
     assert.equal(call(request).value.status, "unchanged");
     assert.deepEqual(codes(call(publish(record(undefined, { direction: "Changed synthetic choice." })))), ["VERSION_CONFLICT"]);
+});
+
+test("preparation remains read-only; refused and stale identity confirmations leave no accepted record", async t => {
+    const { store, call } = await setup(t);
+    const prepared = record("synthetic-prepared");
+    assert.equal(call(discover(), true).value.status, "not-found");
+    assert.equal(await fs.stat(store).then(() => true, () => false), false);
+
+    const request = publish(prepared);
+    for (const [acceptance, diagnostic] of [
+        [undefined, "APPROVAL_REQUIRED"],
+        [{ ...request.acceptance, confirmed: false }, "APPROVAL_REQUIRED"],
+        [{ ...request.acceptance, decisionId: "earlier-preview" }, "INVALID_REQUEST"],
+        [{ ...request.acceptance, version: 2 }, "INVALID_REQUEST"]
+    ]) {
+        const result = call({ ...request, acceptance });
+        assert.equal(result.code, 1);
+        assert.deepEqual(codes(result), [diagnostic]);
+        assert.equal(await fs.stat(store).then(() => true, () => false), false);
+    }
+});
+
+test("synthetic exact replay preserves confirmation time and fresh-process discovery returns the exact saved direction", async t => {
+    const { store, call } = await setup(t);
+    // This fixture exercises the wire gate; it is not evidence of a live human's approval.
+    const confirmed = publish(record("synthetic-confirmed", {
+        direction: "SYNTHETIC ONLY: preserve this exact offer, attendee takeaway and no-publication boundary."
+    }));
+    assert.equal(call(confirmed).value.status, "published");
+    const before = await storeBytes(store);
+    assert.equal(call(confirmed).value.status, "unchanged");
+    assert.deepEqual(await storeBytes(store), before);
+
+    const selected = call(discover(), true);
+    assert.equal(selected.code, 0);
+    assert.equal(selected.value.status, "selected");
+    assert.equal(selected.value.decisions[0].direction, confirmed.record.direction);
+    assert.equal(selected.value.decisions[0].acceptedAt, "2026-10-19T00:00:00+00:00");
+    assert.deepEqual(selected.value.decisions[0].scope, confirmed.record.scope);
+    assert.deepEqual(await storeBytes(store), before);
+
+    const regenerated = structuredClone(confirmed);
+    regenerated.record.acceptedAt = "2026-10-19T00:00:01Z";
+    assert.deepEqual(codes(call(regenerated)), ["VERSION_CONFLICT"]);
+    assert.deepEqual(await storeBytes(store), before);
+});
+
+test("expired replacement never revives predecessor, and discovery leaves interrupted writes untouched", async t => {
+    const { store, call } = await setup(t);
+    const prior = record("synthetic-prior");
+    const replacement = record("synthetic-replacement", {
+        effectiveFrom: "2026-10-20T00:00:00Z",
+        effectiveUntil: "2026-10-21T00:00:00Z",
+        supersedes: [{ decisionId: prior.decisionId, version: prior.version }]
+    });
+    assert.equal(call(publish(prior)).value.status, "published");
+    assert.equal(call(publish(replacement)).value.status, "published");
+    const recovery = join(store, "accepted", ".publish-" + "b".repeat(32) + ".tmp");
+    await fs.writeFile(recovery, "synthetic interrupted write");
+    const before = await storeBytes(store);
+    for (const [asOf, status, id] of [
+        ["2026-10-19T12:00:00Z", "selected", prior.decisionId],
+        ["2026-10-20T00:00:00Z", "selected", replacement.decisionId],
+        ["2026-10-21T00:00:00Z", "not-found", undefined]
+    ]) {
+        const result = call(discover({ asOf }), true).value;
+        assert.equal(result.status, status);
+        assert.equal(result.decisions[0]?.decisionId, id);
+        assert.deepEqual(await storeBytes(store), before);
+    }
+    assert.deepEqual(codes(call(withdraw(replacement), true)), ["READ_ONLY"]);
+    assert.deepEqual(await storeBytes(store), before);
+});
+
+test("withdrawal rejects missing, refused and wrong-version confirmation without changing saved direction", async t => {
+    const { store, call } = await setup(t);
+    const value = record("synthetic-withdrawal");
+    assert.equal(call(publish(value)).value.status, "published");
+    const before = await storeBytes(store), request = withdraw(value);
+    for (const [acceptance, diagnostic] of [
+        [undefined, "APPROVAL_REQUIRED"],
+        [{ ...request.acceptance, confirmed: false }, "APPROVAL_REQUIRED"],
+        [{ ...request.acceptance, version: 2 }, "INVALID_REQUEST"]
+    ]) {
+        assert.deepEqual(codes(call({ ...request, acceptance })), [diagnostic]);
+        assert.equal(call(discover(), true).value.status, "selected");
+        assert.deepEqual(await storeBytes(store), before);
+    }
+    assert.equal(call(request).value.status, "withdrawn");
+    assert.equal(call(discover(), true).value.status, "not-found");
+    const withdrawn = await storeBytes(store);
+    assert.equal(call(request).value.status, "withdrawn");
+    assert.deepEqual(await storeBytes(store), withdrawn);
 });
 
 test("fresh-process discovery and partial scope never infer context or create missing store", async t => {

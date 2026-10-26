@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import { constants } from "node:fs";
+import { isAbsolute } from "node:path";
 export class MiqError extends Error {
     code;
     constructor(code) {
@@ -141,6 +144,39 @@ export async function stdin(maximum = 131072) {
     }
     requireThat(length > 0);
     return Buffer.concat(chunks);
+}
+// File content is data, never a command. Paths must come from the current host,
+// not a source passage. Identity checks are mistake guards, not OS isolation.
+export async function readJsonFile(path, maximum = 262144) {
+    requireThat(isAbsolute(path));
+    if (process.platform === "win32")
+        requireThat(/^[a-z]:[\\/]/iu.test(path) && !path.slice(2).includes(":"));
+    const visible = await fs.lstat(path);
+    requireThat(visible.isFile() && !visible.isSymbolicLink() && visible.nlink === 1 &&
+        visible.size > 0 && visible.size <= maximum);
+    const file = await fs.open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
+    try {
+        const before = await file.stat();
+        requireThat(before.isFile() && before.dev === visible.dev && before.ino === visible.ino &&
+            before.nlink === 1 && before.size === visible.size);
+        const bytes = Buffer.alloc(before.size + 1);
+        let length = 0;
+        while (length < bytes.length) {
+            const { bytesRead } = await file.read(bytes, length, bytes.length - length, length);
+            if (bytesRead === 0)
+                break;
+            length += bytesRead;
+        }
+        const after = await file.stat(), current = await fs.lstat(path);
+        requireThat(length === before.size && after.size === before.size &&
+            after.mtimeMs === before.mtimeMs && after.ctimeMs === before.ctimeMs &&
+            current.isFile() && !current.isSymbolicLink() && current.nlink === 1 &&
+            current.dev === before.dev && current.ino === before.ino);
+        return strictJson(bytes.subarray(0, length), maximum);
+    }
+    finally {
+        await file.close();
+    }
 }
 export function ioCode(error) {
     return error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : undefined;

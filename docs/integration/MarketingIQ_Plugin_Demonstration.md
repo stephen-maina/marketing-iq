@@ -219,3 +219,78 @@ cannot measure a success rate or establish production readiness.
 Separately, the scoped development checks passed 91 tests before initial
 publication. Those deterministic checks complement, but do not replace, the
 actual-agent observations above.
+
+## October 26, 2026: gap-closure implementation and observations
+
+This follow-up adds bounded file inputs for evidence and decision requests,
+`--packet-file` preflight/export, a GitHub Contents response-mapping example,
+explicit exposed-connector discovery/setup guidance, and a repository marketplace
+catalog. Canonical instructions remain under `.github`; the native plugin is
+generated from them. The redistributed source-route registry remains empty.
+No tenant, supplied live folder, credential or sharing-link parameter was added
+to runtime configuration or committed fixtures.
+
+### Actual CLI check using a user-supplied SharePoint folder
+
+An actual Copilot CLI 1.0.103 model run used the current generated plugin from
+a clean consumer directory and the user's approved SharePoint folder scope.
+The sharing wrapper was not passed through; its decoded folder location was
+identified as a scope, not proof of a working direct URL. The normal MCP
+configuration and built-in servers were left enabled. No `--available-tools`
+filter was used to manufacture connector absence.
+
+Captured metadata showed four MCP servers loading. That does not prove their
+tools were callable from the selected Marketing IQ agent: its native tool
+profile remains unchanged. The only observed tool call was `skill`; no source
+retrieval, configuration inspection, credential read or installation occurred.
+The process exited zero and delivered this connector-only outcome:
+
+> No SharePoint-compatible retrieval tool exposed here.
+
+It reported blocked before retrieval, preserved the supplied scope, and gave
+conditional owner steps: add a connector if absent, configure/enable if needed,
+authenticate through the normal host flow if required, ensure selected-agent
+exposure, then reload if required and reinspect. It explicitly left installation,
+authentication, folder permissions and direct-URL reachability unverified.
+This demonstrates the missing-exposed-connector branch on a real supplied scope,
+**not successful live SharePoint retrieval** or a claim that the user's connector
+was uninstalled. The source URL and raw capture are deliberately not reproduced.
+
+### Human-confirmed synthetic decision lifecycle
+
+The user reviewed an exact fictional direction, scope, ID/version, UTC validity,
+no-replacement effect and isolated demo-store location. Only after explicit save
+confirmation was the request executed. The helper returned `published`. A fresh
+helper process, given scope and actual current time rather than the decision ID,
+returned `selected`. After a separate explicit withdrawal confirmation the helper
+returned `withdrawn`; another fresh process returned `not-found`.
+
+This closes the human-confirmation/helper lifecycle observation. It is not a
+fresh model-session Field answer, live product authority, or publication approval.
+The demo store and approval artifacts remain outside the Git repository.
+
+### Packaging and transport boundaries
+
+CLI 1.0.103 registered the new local marketplace, browsed Marketing IQ and
+installed `marketing-iq@marketing-iq-plugins` with all three skills in an
+isolated CLI home. It reported a live local link, not a copied remote artifact.
+Remote marketplace discovery and an invocation from that remote-installed copy
+require separate observation; local registration alone does not establish them.
+
+The new file-input workflow validates the entire review packet and exports only
+its canonical candidate with the existing read-back controls. Mechanical tests
+cover bounded strict inputs, exact Field rendering and packet failures; they
+do not replace the separate model reviewer. The selected native agent still has
+no permitted native data-only file writer. An engineering host's file creation
+tool does not prove plugin-actor capability. Consequently dynamic model packet
+staging, preflight and export in that selected context remain unverified/blocked;
+no tool permissions were broadened to hide the limit.
+
+The concrete GitHub Contents adapter maps a documented response and explicit
+observed scope/tool metadata. Its fixture is fictional and tests mapping/admission,
+not authentication, live GitHub retrieval or connector installation.
+
+Final integrated validation passed 108 helper/review tests, three native
+plugin/marketplace tests and one relocated archive journey, with zero failures
+or skips. An independent read-only code review reported no significant defects.
+These results do not remove the live-retrieval and native-writer limits above.

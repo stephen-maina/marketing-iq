@@ -25,6 +25,8 @@ Fresh Field sessions must use scoped decision-tool discovery, never scan
 diagnostic files, old conversations or exported assessments for direction.
 No source restriction is relaxed by export. Do not upload files or persist
 raw retrieval bodies, review evidence packets, credentials or whole transcripts.
+Bounded current session processing inputs may be staged only under
+`packet-transport.md`; they are not diagnostic files or reusable evidence.
 
 ## Export procedure
 
@@ -53,6 +55,17 @@ raw retrieval bodies, review evidence packets, credentials or whole transcripts.
    Never paste private passages or answer text into executable shell input.
    A current capture may be parsed as data to select the exact final object;
    do not scrape an arbitrary earlier answer or silently select a different turn.
+   When a permitted native writer already staged/read back the exact final
+   canonical object, avoid an encoding-sensitive shell pipe:
+
+   `node .github\skills\marketing-iq\scripts\Save-ResultArtifact.mjs --directory <absolute-existing-session-artifact-directory> --candidate-file <absolute-session-final-candidate.json>`
+
+   Or, for the exact final retained pair staged under `packet-transport.md`,
+   use `--packet-file <absolute-session-final-packet.json>` instead. This mode
+   mechanically validates the whole packet before selecting only `candidate`.
+   Both file options use bounded strict UTF-8 JSON; invalid input fails without
+   creating an export. They preserve exclusive creation and byte read-back;
+   neither manufactures a native writer, review result or acceptance.
 5. If no safe write/input capability exists, the directory is unavailable, a
    restriction prevents export, or the operation fails, do not invent a file
    or acquire another permission/capability. Deliver the unchanged readable

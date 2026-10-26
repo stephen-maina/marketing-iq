@@ -3,7 +3,9 @@ import fs from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, isAbsolute, join, parse, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateCandidateStructure } from "./Test-ReviewPacket.mjs";
+import { Readable } from "node:stream";
+import { validateCandidateStructure, validateReviewPacket } from "./Test-ReviewPacket.mjs";
+import { readJsonFile } from "./portable/json.js";
 
 const MAX_INPUT_BYTES = 262144;
 const RESERVED_DIRECTORIES = new Set(["launch-decisions", "accepted", "archive", "knowledge"]);
@@ -164,8 +166,21 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
     try {
         const args = process.argv.slice(2);
-        if (args.length !== 2 || args[0] !== "--directory") throw new ArtifactError("invalid-arguments");
-        const receipt = await saveResultArtifact(process.stdin, args[1]);
+        if (![2, 4].includes(args.length) || args[0] !== "--directory" ||
+            args.length === 4 && !["--candidate-file", "--packet-file"].includes(args[2]))
+            throw new ArtifactError("invalid-arguments");
+        let input = process.stdin;
+        if (args.length === 4) {
+            let value;
+            try { value = await readJsonFile(args[3], MAX_INPUT_BYTES); }
+            catch { throw new ArtifactError("invalid-input-file"); }
+            if (args[2] === "--packet-file") {
+                if (validateReviewPacket(value).status !== "pass") throw new ArtifactError("invalid-packet");
+                value = value.candidate;
+            }
+            input = Readable.from([Buffer.from(JSON.stringify(value), "utf8")]);
+        }
+        const receipt = await saveResultArtifact(input, args[1]);
         process.stdout.write(`${JSON.stringify(receipt)}\n`);
     } catch (error) {
         const code = error instanceof ArtifactError ? error.code : "export-failed";

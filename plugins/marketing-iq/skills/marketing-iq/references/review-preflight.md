@@ -16,11 +16,15 @@ source truth.
 - The checker does **not** retrieve, execute commands, write packets, save
   directions, or launch review.
 - Ordinary runtime use must **not** copy live source bodies or draft text into a
-  shell literal or a newly created file just to run this checker.
+  shell literal. A new session input file is permitted only through the bounded
+  native data-only writer procedure in `packet-transport.md`, when that tool is
+  actually exposed and source restrictions permit the staging.
 - If a producing task already emitted the packet in a native host capture, an
   explicit review-owning coordinator may consume that exact native packet through
   `--events ... --call ...`.
-- Without that safe transport, keep the existing session-only preparation checks
+- A permitted current session file may instead use `--packet-file` below.
+  A filename flag supplies no missing write permission or capability.
+- Without safe transport, keep the existing session-only preparation checks
   and disclose that no deterministic preflight was run. This checker does not
   create a new capability or bypass.
 - Stdin must preserve UTF-8 characters end to end. Prefer `pwsh` (PowerShell 7+);
@@ -159,16 +163,31 @@ synthetic examples live in `tests\hosted-preflight\review-packet.test.mjs`.
   carry citations. A mechanical pass never substitutes for the semantic reviewer.
 - No authenticated-source validation.
 - No installed final-output hook or delivery interception.
-- No duplicate-key detection in JSON objects. If a producer can emit duplicate
-  keys, that remains outside this script's current boundary.
+- Legacy stdin/events modes do not detect duplicate JSON keys. The new file
+  mode uses the strict portable parser and rejects duplicate/escaped-alias keys.
 
 ## CLI
+
+### Native data-only session file (no shell body transport)
+
+Follow `packet-transport.md` to create/read back the exact current REVIEW PACKET
+with an actually exposed native file tool. Then pass only its observed path:
+
+```powershell
+node <MIQ_SHARED>\scripts\Test-ReviewPacket.mjs --packet-file <absolute-session-packet.json>
+```
+
+This reads a bounded, regular UTF-8 JSON file directly. Relative paths, final
+symlinks/hardlinks, empty/oversized files, invalid UTF-8 and duplicate JSON keys
+fail with fixed non-sensitive diagnostics. Input is never evaluated, repaired or
+echoed. No file is created by the checker. Review still receives the retained
+pair and original passages inline, not a path to recover them later.
 
 ### 1. Safe stdin packet
 
 Pass the full REVIEW PACKET JSON on stdin. This file example is for an existing
-synthetic fixture only; live input must use an already-retained host capture,
-not a newly written source/draft file:
+synthetic fixture only; live stdin uses an already-retained host capture. For
+permitted native-tool staging, use `--packet-file` instead:
 
 ```powershell
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -292,8 +311,8 @@ not a reason to rewrite valid copy or claim a pass: correct the checker with a
 synthetic regression and rerun the same candidate, or disclose the unavailable
 mechanical gate. This does not reset any retrieval or semantic-review allowance.
 
-This tool is for a **review-owning coordinator** that already has a safe packet
-transport. It is **not** a reason to create a new live packet file, paste live
-source passages into shell literals, or claim a deterministic preflight where no
-safe transport exists. In those cases, keep the existing manual/session checks and
-disclose that no deterministic preflight was available.
+This tool is for a **review-owning coordinator** that already has safe packet
+transport. The native-tool staging exception never authorizes shell body
+interpolation, missing tool permissions or unrestricted evidence persistence.
+If neither a permitted native writer nor an existing exact capture/stdin path
+exists, keep the manual/session checks and disclose the actual not-run reason.

@@ -4,15 +4,15 @@ import { fileURLToPath } from "node:url";
 import { executeDecision } from "./decisions.js";
 import { normalizeEvidence } from "./evidence.js";
 import { context, routes } from "./routes.js";
-import { MiqError, ioCode, requireThat, stdin, strictJson } from "./json.js";
+import { MiqError, ioCode, readJsonFile, requireThat, stdin, strictJson } from "./json.js";
 
 const version = "0.1.0";
 const help = "Marketing IQ 0.1.0 (Node >=22.18.0)\n" +
     "context --use-case launch-decision|field-activation\n" +
     "routes --use-case <workflow> --product-key <label> --topic-key <label> --evidence-need <lane>\n" +
-    "evidence --adapter <adapter-id> (normalized JSON on stdin)\n" +
+    "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
     "local-file --file <explicit-synthetic-envelope.json>\n" +
-    "decisions --store-root <path> [--read-only] (JSON on stdin)\n" +
+    "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
     "check | --version | --help\n";
 const command = process.argv[2];
 try {
@@ -52,8 +52,9 @@ try {
             result = routes(strictJson(bytes), arg("--use-case"), arg("--product-key"), arg("--topic-key"), arg("--evidence-need")); break;
         }
         case "evidence":
-            options(["--adapter"]);
-            result = normalizeEvidence(strictJson(await stdin(262144), 262144), arg("--adapter")); break;
+            options(["--adapter"], ["--input-file"]);
+            result = normalizeEvidence(args.has("--input-file") ? await readJsonFile(arg("--input-file")) :
+                strictJson(await stdin(262144), 262144), arg("--adapter")); break;
         case "local-file": {
             options(["--file"]);
             const file = await fs.open(arg("--file"), "r");
@@ -63,8 +64,9 @@ try {
             result = normalizeEvidence(strictJson(bytes, 262144), "local-file"); break;
         }
         case "decisions":
-            options(["--store-root"], ["--read-only"]);
-            result = await executeDecision(strictJson(await stdin()), arg("--store-root"), args.has("--read-only"));
+            options(["--store-root"], ["--read-only", "--input-file"]);
+            result = await executeDecision(args.has("--input-file") ? await readJsonFile(arg("--input-file"), 131072) :
+                strictJson(await stdin()), arg("--store-root"), args.has("--read-only"));
             if (["invalid", "approval-required"].includes((result as { status: string }).status)) process.exitCode = 1;
             break;
         default: throw new MiqError("INVALID_REQUEST");

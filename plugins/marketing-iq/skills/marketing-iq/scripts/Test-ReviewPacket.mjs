@@ -3,6 +3,7 @@ import { access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { basename, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readJsonFile } from "./portable/json.js";
 
 const MAX_STDIN_BYTES = 262144;
 const MAX_SELECTED_PACKET_BYTES = 262144;
@@ -534,6 +535,8 @@ async function readBoundedStdin() {
 
 function validateCliArgs(args) {
     if (args.length === 0) return { mode: "stdin" };
+    if (args.length === 2 && args[0] === "--packet-file")
+        return { mode: "file", packetPath: args[1] };
     if (args.length === 4 && args[0] === "--events" && args[2] === "--call") {
         return { mode: "events", eventsPath: args[1], callId: args[3] };
     }
@@ -543,7 +546,7 @@ function validateCliArgs(args) {
         }
         return { mode: "events", eventsPath: args[1], callId: args[3], turn: Number.parseInt(args[5], 10) };
     }
-    return { error: { status: "fail", findings: [{ path: "input.cli", reason: "Invalid arguments; use stdin only, --events <absolute events.jsonl> --call <toolCallId>, or --events <absolute events.jsonl> --call <toolCallId> --turn <nonnegative integer>" }] } };
+    return { error: { status: "fail", findings: [{ path: "input.cli", reason: "Invalid arguments; use stdin, --packet-file <absolute-data.json>, --events <absolute events.jsonl> --call <toolCallId>, or add --turn <nonnegative integer> to events mode" }] } };
 }
 
 async function parsePacketJson(raw, pathPrefix) {
@@ -716,6 +719,12 @@ async function runCli() {
 
     if (args.mode === "events") {
         return readPacketFromEvents(args.eventsPath, args.callId, args.turn);
+    }
+    if (args.mode === "file") {
+        try { return validateReviewPacket(await readJsonFile(args.packetPath, MAX_SELECTED_PACKET_BYTES)); }
+        catch {
+            return { status: "fail", findings: [{ path: "input.file", reason: "Packet file was unavailable, unsafe, oversized, or not strict UTF-8 JSON" }] };
+        }
     }
 
     const stdin = await readBoundedStdin();

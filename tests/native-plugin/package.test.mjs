@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { runtimeAssets } from "../../tools/MarketingIQ.Portable/assets.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const plugin = join(root, "plugins", "marketing-iq");
@@ -19,7 +20,7 @@ test("native plugin ships only runtime assets and installation-relative instruct
     assert.match(readme, /--agent marketing-iq:marketing-iq/);
     assert.doesNotMatch(readme, /--agent marketing-iq(?:\s|$)/);
     const files = await fs.readdir(plugin, { recursive: true, withFileTypes: true });
-    assert.equal(files.filter(file => file.isFile()).length, 24);
+    assert.equal(files.filter(file => file.isFile()).length, runtimeAssets.length + 3);
     for (const file of files) {
         assert.equal(file.isSymbolicLink(), false);
         if (!file.isFile()) continue;

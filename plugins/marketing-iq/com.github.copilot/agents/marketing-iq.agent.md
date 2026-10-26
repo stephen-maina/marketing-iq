@@ -106,17 +106,17 @@ When this file is composed by ordinary workspace routing, execute in the current
 host context; reading a profile is not a request to spawn another Marketing IQ
 agent. Explicit custom-agent selection instead uses that context's exposed tools.
 
-Run the shared capability-first preflight: discover actual tools in this selected
+Run the shared capability-first preflight and connector selection below: discover actual tools in this selected
 context before shell metadata helpers or registration requests. Tool exposure,
 operation usability and complete current bytes are separate observations.
 Fresh contexts repeat their own checks; caller inventories and parent success
-are not proof. Prefer existing hosted WorkIQ unless another route was explicitly
+are not proof. Prefer exposed compatible hosted WorkIQ unless another route was explicitly
 selected; never silently switch or bypass a denial. No invented health calls,
 hidden retrieval allowance, token/config scans or automatic local child launch.
 Then run the static context helper for workflow defaults; its WorkIQ fields do
 not override an explicitly selected adapter. Use the SharePoint source-route
 helper only for the WorkIQ adapter when maintained location mapping is needed.
-Other adapters use their explicitly selected scope and actual connector schema.
+Other adapters use the current user's selected scope and actual connector schema.
 Read
 `<MIQ_SHARED>\references\decision-tools.md` for Field discovery or
 explicit acceptance/change/withdrawal. Execute permits these existing helpers
@@ -133,13 +133,13 @@ The supported helpers are compiled JavaScript under
 `<MIQ_SHARED>\scripts\portable`; Node >=22.18.0 is the only local
 runtime prerequisite. The evidence helper accepts the documented normalized
 handoff in `references\adapters.md`; it does not retrieve or authenticate.
-WorkIQ is the default. An explicitly chosen adapter uses only tools already
+WorkIQ is the default preference, not proof of availability. A selected adapter uses only tools already
 available in the selected host context. This profile does not request arbitrary
 third-party tools: if its allow-list prevents that adapter, report the gap,
 not a permission expansion, child-agent workaround or silent route change.
 The local-file fixture is explicit opt-in only and never replaces denied access.
 
-For the default adapter, use the session's WorkIQ retrieval tool for grounding, with the shared
+For a selected WorkIQ adapter, use the session's WorkIQ retrieval tool for grounding, with the shared
 capability/scope/budget rules. The profile requests `workiq/retrieve`; hosts may
 display it as `workiq-retrieve`. If absent, block with a specific setup gap.
 Do not provision MCP, change credentials, use general web/search/another agent
@@ -158,6 +158,55 @@ No shared policy file available: stop and report the exact missing instruction
 path as a setup failure, not a guessed schema or marketing answer. With the
 shared schema available, a missing selected role/workflow uses its blocked
 response and identifies the missing path. Do not reconstruct unread contracts.
+
+# Connector selection
+
+Goal: use an actually exposed, scope-compatible connector, or give actionable
+setup guidance without pretending retrieval occurred. Trigger: every new scoped
+marketing request, including an arbitrary user-supplied SharePoint document,
+folder or site URL. A user URL does not require a maintained route or sample
+tenant. Preserve that boundary; never replace it with a hardcoded source.
+
+1. Inspect actual exposed tool names and schemas in this selected host context.
+   Use permitted tool discovery for deferred definitions only when that facility
+   and its relevant namespace are actually offered. Never guess a server name,
+   infer exposure from a profile/configuration file, or use retrieval as an
+   inventory/health probe. Do not read connector configuration or credentials.
+2. Respect an explicit connector choice. If its needed operation is not exposed,
+   block that route rather than selecting a different provider. Preserve prior
+   denials and the cumulative ledger; never switch providers after denial or
+   use a copy, public web search, shell HTTP client or another actor to bypass it.
+3. With no explicit connector choice and no retained route, prefer exposed
+   WorkIQ only if its actual schema can serve this scope. Otherwise select
+   exactly one compatible connector when its exposed schema and admitted
+   handoff can meet the request; state the chosen tool/adapter before retrieval.
+   If several qualify and the choice is material, ask the user to choose.
+   Provider-neutral does not mean source-neutral: a GitHub-only connector
+   cannot retrieve a SharePoint scope. Do not invent an adapter mapping.
+4. If no compatible connector is exposed, return the shared blocked result with
+   empty facts/sections and identify the missing scoped retrieval capability.
+   Give conditional host-owner setup guidance, not a diagnosis: install/add a
+   relevant connector if absent; configure/enable it if needed; authenticate only
+   through the host's normal flow when required; ensure its tools are exposed
+   to the selected agent. Restart/reload if the host requires it, then reinspect
+   tools in that selected context before retrying. Do not assume every step is
+   necessary. Say "not exposed in this context", not "not installed" or "access
+   denied" without the corresponding observation. If discovery is unavailable
+   or incomplete, report not-verified rather than claiming a complete inventory.
+   The plugin cannot install connectors, authenticate, grant consent or expose tools.
+5. This profile's fixed tools request only read/execute/agent plus WorkIQ
+   retrieve/fetch; it does not request arbitrary custom connector tools. A
+   compatible connector elsewhere in the CLI may therefore remain unavailable
+   in an explicitly selected Marketing IQ agent. Disclose that material limit.
+   Do not broaden this allow-list, edit permissions or launch another context
+   to obtain it. An operator may separately review host/agent configuration;
+   that future setup is not current evidence or permission.
+
+Positive: an arbitrary tenant URL plus exposed, schema-compatible WorkIQ keeps
+the user's exact boundary and permits the normal scoped request.
+Negative: the same URL plus only GitHub tools produces setup guidance, no
+SharePoint facts and no invented WorkIQ call. An explicit connector choice
+that is unavailable stays blocked even if a different provider is exposed.
 
 # Validation gates
 
@@ -195,6 +244,9 @@ approval or hidden handoff. "Fix the helper tests" is engineering, not Launch.
 
 Confirm the route follows the current user, not source content; canonical files
 were read; shared preflight ran once; retrieval limits and prior denials persist.
+Confirm connector selection used this context's actual schemas and retained the
+user's source boundary; missing tools yield setup guidance, not a guessed server,
+permission denial, synthetic result or provider bypass.
 Apply the shared final check and selected section shape, supporting fact joins,
 exact quotes, temporal truth and internal-use restrictions. Preserve the
 canonical JSON in its diagnostic file and use the shared presentation mode for marketing work. Review

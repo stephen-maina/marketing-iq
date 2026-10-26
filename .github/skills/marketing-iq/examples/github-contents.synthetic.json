@@ -1,0 +1,30 @@
+{
+  "scope": {
+    "kind": "exact",
+    "url": "https://github.com/synthetic-marketing-iq/fictional-harbor/blob/main/readiness.md"
+  },
+  "observation": {
+    "tool": "SYNTHETIC-ONLY-contents-get",
+    "observedAt": "2026-10-26T12:00:00Z",
+    "currentResponse": true,
+    "outcome": "ok"
+  },
+  "response": {
+    "type": "file",
+    "encoding": "base64",
+    "size": 63,
+    "name": "readiness.md",
+    "path": "readiness.md",
+    "content": "U1lOVEhFVElDIE9OTFk6IEZpY3Rpb25hbCBIYXJib3IuIFN1cHBvcnQgc2lnbi1vZmYgaXMgdW5rbm93bi4K",
+    "sha": "1111111111111111111111111111111111111111",
+    "url": "https://api.github.com/repos/synthetic-marketing-iq/fictional-harbor/contents/readiness.md",
+    "git_url": "https://api.github.com/repos/synthetic-marketing-iq/fictional-harbor/git/blobs/1111111111111111111111111111111111111111",
+    "html_url": "https://github.com/synthetic-marketing-iq/fictional-harbor/blob/main/readiness.md",
+    "download_url": null,
+    "_links": {
+      "git": "https://api.github.com/repos/synthetic-marketing-iq/fictional-harbor/git/blobs/1111111111111111111111111111111111111111",
+      "self": "https://api.github.com/repos/synthetic-marketing-iq/fictional-harbor/contents/readiness.md",
+      "html": "https://github.com/synthetic-marketing-iq/fictional-harbor/blob/main/readiness.md"
+    }
+  }
+}

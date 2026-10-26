@@ -1,0 +1,13 @@
+{
+  "name": "marketing-iq-plugins",
+  "owner": {
+    "name": "stephen-maina"
+  },
+  "plugins": [
+    {
+      "name": "marketing-iq",
+      "source": "./plugins/marketing-iq",
+      "description": "Evidence-led Launch decisions and Field activation using your existing host connector."
+    }
+  ]
+}

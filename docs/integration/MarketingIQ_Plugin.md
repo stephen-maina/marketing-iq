@@ -12,16 +12,22 @@ plugin needs no npm install, TypeScript compiler or .NET runtime/SDK.
 Your GitHub account must separately have access to the repository and Copilot.
 
 ```powershell
-copilot plugin install stephen-maina/marketing-iq:plugins/marketing-iq
+copilot plugin marketplace add stephen-maina/marketing-iq
+copilot plugin install marketing-iq@marketing-iq-plugins
 copilot plugin list --json
 copilot --agent marketing-iq:marketing-iq
 ```
 
-This direct repository install was exercised with Copilot CLI 1.0.98. That
-version accepts it but warns that direct installs are deprecated in favor of
-marketplace installs in a future release. This repository does not yet provide
-a marketplace; the clone-and-load alternative below avoids persistent direct
-installation. No future CLI compatibility is claimed.
+The repository supplies `.github\plugin\marketplace.json`. Its local-path
+registration, catalog discovery and marketplace-name installation were exercised
+with Copilot CLI 1.0.103 in an isolated CLI home. The CLI reported a live local
+link, not a remote download. Access to this private repository is still required
+for remote registration; that path must be verified separately.
+
+The earlier direct repository install
+(`copilot plugin install stephen-maina/marketing-iq:plugins/marketing-iq`)
+was exercised with CLI 1.0.98, which warned that direct installs were deprecated.
+Prefer the marketplace path or the clone-and-load alternative below.
 
 Start the last command in the workspace where you want to keep your decisions,
 not the installed plugin directory. In an interactive session, `/agent` lets
@@ -42,7 +48,8 @@ to the clone's actual location. Compiled JavaScript is committed for consumers.
 Updating an installed plugin uses
 `copilot plugin update marketing-iq`; a locally installed copy must be installed
 again after rebuilding. `--plugin-dir` loads its directory without installing.
-No marketplace, MCP server, sign-in service or background daemon is added.
+A marketplace catalog is supplied; no MCP server, sign-in service or background
+daemon is added.
 The plugin agent is namespaced as `marketing-iq:marketing-iq`; the bare
 `marketing-iq` name is for the workspace agent, not this native installation.
 
@@ -61,6 +68,16 @@ uses scoped SharePoint documents, with relevant Email/Meetings context only when
 needed. Packaged source routes are intentionally empty; private mappings are
 not redistributed. Ordinary users can supply a URL without editing any files.
 
+Before selecting a route, the agent inspects the tool names and schemas actually
+exposed by its host. WorkIQ is a preference, not a hardcoded tenant or proof of
+availability. Without an explicit connector choice, a unique exposed compatible
+connector can be selected; ambiguous choices require clarification. No compatible
+exposed tool produces setup guidance, not a claim that a server is uninstalled.
+Use your host's normal connector setup and authentication, ensure the selected
+agent can access it, then start a fresh session and retry the same source scope.
+This does not authorize a provider switch after a selected route fails or denies
+access.
+
 For another connector, install/configure it using your host's normal procedure,
 then explicitly name the adapter ID, exposed retrieval tool and source scope.
 The connector retrieves; an adapter maps its **actual observed** results to the
@@ -70,6 +87,12 @@ admits the evidence, reasons over it, and requests a separate model review.
 installer or executable registry. The selected Copilot agent's allow-list may
 not expose your custom connector: report that gap, or have the operator provide
 an explicitly reviewed host-native configuration. Never bypass a denial.
+
+For a concrete alternative, `examples\github-contents-adapter.mjs` maps a
+documented GitHub Contents API file response plus an explicit tool/scope
+observation to the same handoff. Its companion fixture is visibly synthetic.
+See `references\adapters.md` for the input contract and stdin invocation. This
+example does not install a GitHub connector or establish live retrieval.
 
 To try the fictional included example instead of connecting enterprise data:
 
@@ -100,6 +123,24 @@ Readable answers and session-local canonical diagnostic JSON are separate from
 saved direction. Diagnostics, when the host supports their safe creation, do
 not approve or accept anything. Independent model review is likewise not
 product, execution or publication approval.
+
+## Safe packet files
+
+Hosts with an already permitted native data-only file writer can stage a review
+packet in session storage, read it back, then use these file inputs:
+
+```powershell
+node "<shared-skill>\scripts\Test-ReviewPacket.mjs" --packet-file "<absolute-packet.json>"
+node "<shared-skill>\scripts\Save-ResultArtifact.mjs" --directory "<session-files>" --packet-file "<absolute-final-reviewed-packet.json>"
+```
+
+The export validates the whole packet and writes only its canonical candidate;
+it does not replace the separate semantic reviewer. See
+`references\packet-transport.md` for staging, exact review pairing and read-back.
+Do not embed source or draft bodies into shell commands to manufacture stdin.
+The selected native Marketing IQ agent's current tool profile has no native file
+writer. File-input support does not remove that host capability limit, and the
+plugin does not broaden permissions to hide it.
 
 ## Hosts and limits
 

@@ -78,9 +78,30 @@ Do not load the entire programme handoff or old transcripts into each answer.
 
 Read `references\adapters.md`. Keep retrieval/authentication in the user's
 existing host connector; never implement a token client or install a connector
-automatically. WorkIQ is the default adapter, not a universal input requirement.
-An explicit user selection may instead name an already available connector and
-its adapter ID. Use its observed source results and the closed normalized
+automatically. Before selecting an adapter or retrieving, inspect this context's
+actually exposed tool names and callable schemas, using only permitted discovery
+offered by this host. Preserve the user's arbitrary explicit source scope; do
+not replace it with a sample or require a maintained route label. Respect an
+explicit connector choice. Otherwise prefer an exposed, scope-compatible WorkIQ
+connector; if none is exposed, select only a unique exposed compatible connector
+whose observed schema supports the required source identity and bounded body
+handoff. If multiple alternatives qualify, ask the user to choose. Tool exposure
+does not establish authentication or operation usability; keep those checks
+separate under Pre-flight. Once a route is selected, failure or denial does not
+permit provider fallback.
+
+If no appropriate connector is exposed, block with the observed capability gap
+without inferring that a connector is uninstalled or unauthenticated. Ask the
+host owner to use the normal host process: add/install only if absent,
+configure/enable only if needed, authenticate only when required through the
+normal host flow, and ensure the connector is exposed to the selected agent.
+Restart/reload only if the host requires it, then reinspect actual callable tools.
+These are conditional owner steps, not a claim that every step is necessary.
+Do not inspect config or credentials, install a connector, broaden tool
+permissions, or claim that a server is installed or authenticated.
+A fixed explicit-agent tool allow-list may
+prevent an otherwise available connector; report that boundary rather than
+moving to another actor. Use observed source results and the closed normalized
 handoff contract; do not infer a raw connector response schema or execute code
 named in a result. Another adapter is not a fallback for denied WorkIQ access.
 The only bundled local-file adapter is an explicitly selected synthetic sample,
@@ -88,8 +109,10 @@ not a production connector or a way to relabel cached enterprise evidence.
 
 Run `node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
 on the exact normalized handoff using safe data-only stdin/current permitted
-host-capture transport. Do not put source bodies in shell literals, environment
-variables, test fixtures or new copies. If safe transport is unavailable, block
+host-capture transport, or `--input-file <absolute-session-handoff.json>` under
+`references\packet-transport.md` when a permitted native data-only writer is
+actually exposed. Do not put source bodies in shell literals, environment
+variables, test fixtures or unapproved copies. If safe transport is unavailable, block
 with that precise processing gap. This check validates shape, scope and mechanical
 admission, not truth, authentication, authority or semantic fit. Retain all returned
 restrictions/proof gaps and original admitted passages for independent review.
@@ -205,6 +228,9 @@ Do not create unnecessary copies, place real sources in test fixtures, or use
 historical captures as fresh evidence. Respect source restrictions and never
 store credentials. Save only explicitly confirmed final direction and its record
 metadata in the accepted-decision store, not whole answers, raw sources or drafts.
+The bounded native-tool session staging exception in
+`references\packet-transport.md` permits only current processing inputs when
+source restrictions allow; it is not a retained evidence pack or a new capability.
 Separately, the result-artifacts contract permits the final canonical answer
 as a session-local diagnostic file. It includes only the canonical fields and
 their bounded quotes, not original retrieval bodies, the review evidence packet
@@ -217,8 +243,9 @@ Host conversation/tool retention is not a promise of zero retention.
 1. **Capability first, before registration collection or shell helpers.**
    Preserve the explicit selected route and any denial. Otherwise prefer the
    existing host-managed WorkIQ connection. Use actual discovery in THIS context:
-   when definitions are deferred, use the host's tool-discovery facility (for
-   example `api_tool.list_resources` on `workiq`, filtered to retrieve/fetch/get_schema).
+   inventory exposed names and schemas. When definitions are deferred, use only
+   the host's permitted tool-discovery facility on namespaces it actually offers;
+   never guess a `workiq` namespace from these instructions.
    Inspect callable schemas for retrieval, required metadata and independent
    review; profile text, installed MCP servers and caller-supplied inventories
    are assertions, not proof. A completed discovery missing a required tool is
@@ -262,7 +289,7 @@ Host conversation/tool retention is not a promise of zero retention.
    to acquire a missing capability.
    In Field, resolve accepted/current direction before evidence retrieval;
    missing supplied direction alone is not a blocker.
-   For an explicitly selected non-WorkIQ adapter, use its actual already exposed
+   For a selected non-WorkIQ adapter, use its actual already exposed
    retrieval tool and the normalized handoff instead; absence blocks that route.
 6. Record a session-only scope and call ledger. For WorkIQ, start with SharePoint.
    Use Email/Meetings only for a relevant current-request planning, history,
@@ -399,7 +426,9 @@ Trigger: either workflow, including a request to resume or discover sources.
    of readable complete bytes. Apply preflight step 7 without a transport bypass.
    Do not claim this bounds the connector/model host's own response size.
    No full-file download or OCR is implied.
-5. Keep source passages in the current host context/capture. Do not embed them as
+5. Keep source passages in the current host context/capture, or the narrowly
+   permitted data-only session staging under `references\packet-transport.md`.
+   Do not embed them as
     executable shell input or send them to
    the file-based Answer.Sample console. There is no implemented authenticated
    connector-to-console download or stdin bridge. A link is not a credential.
@@ -780,7 +809,8 @@ validator or a grant of business/publication approval.
      later rendering. The post-review diagnostic export is not a draft/evidence
      transport or a new canonical output field.
    These are preparation checks, not independent review or a claimed pass.
-   Where a data-only current host capture or stdin transport is available, the
+   Where a data-only current host capture, stdin or permitted native-tool
+   session file transport (`references\packet-transport.md`) is available, the
    review owner runs `scripts\Test-ReviewPacket.mjs` as described in
    `references\review-preflight.md`. Correct supported mechanical findings before
    review. If a finding conflicts with the governing contract, preserve it and
@@ -789,7 +819,8 @@ validator or a grant of business/publication approval.
    disclose that the mechanical gate is unavailable; never invent a pass or
    reset the semantic-review allowance.
    Never paste private passages into executable shell input or create a new
-   live source/draft file to enable the check. Without that safe transport,
+   live source/draft file outside that explicit native-tool staging exception.
+   A helper filename option never supplies a missing native writer. Without safe transport,
    retain these session checks. BEFORE retaining the pair for independent review,
    put the deterministic not-run outcome and specific reason in a standalone
    `proofGaps` entry and, when present, in the readable view, with
