@@ -30,9 +30,11 @@ test("native plugin ships only runtime assets and installation-relative instruct
             const text = await fs.readFile(path, "utf8");
             assert.doesNotMatch(text, /\.github\\skills\\/);
             if (file.name === "SKILL.md" || file.name.endsWith(".agent.md")) {
-                assert.match(text, /<MIQ_SHARED>/);
                 assert.match(text, /# Output-format hard gate[\s\S]*# Role[\s\S]*# Final check/);
-                assert.match(text, /Installed assets are read-only/);
+                if (file.name === "SKILL.md" || path.includes(join("com.github.copilot", "agents"))) {
+                    assert.match(text, /<MIQ_SHARED>/);
+                    assert.match(text, /Installed assets are read-only/);
+                }
             }
         }
     }
@@ -73,4 +75,41 @@ test("helpers run after relocation while consumer data stays outside plugin asse
     });
     assert.equal(response.status, "not-found");
     assert.equal(await fs.stat(join(installed, "local-data")).then(() => true, () => false), false);
+});
+
+test("client WorkIQ example is copyable after relocation and rebuild preserves the client's independent copy", async t => {
+    const temporary = await fs.mkdtemp(join(tmpdir(), "miq-client-profile-"));
+    t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+    const installed = join(temporary, "installed plugin");
+    const agents = join(temporary, "consumer", ".github", "agents");
+    await fs.cp(plugin, installed, { recursive: true });
+    await fs.mkdir(agents, { recursive: true });
+    const example = join(installed, "skills", "marketing-iq", "examples", "marketing-iq-workiq.agent.md");
+    const destination = join(agents, "marketing-iq-workiq.agent.md");
+    await fs.copyFile(example, destination, fs.constants.COPYFILE_EXCL);
+    const profile = await fs.readFile(destination, "utf8");
+    assert.doesNotMatch(profile, /generated native-plugin component, not a consumer-workspace file/);
+    assert.match(profile, /name: marketing-iq-workiq/);
+    assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(profile)[1]),
+        ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch"]);
+    assert.match(profile, /host's discovered installed plugin skill/);
+    assert.match(profile, /Do not invoke the packaged Marketing IQ agent/);
+    assert.match(profile, /Renaming a tool cannot supply missing source/);
+    assert.match(profile, /empty facts\s+and sections/);
+    assert.doesNotMatch(profile, /\.github\\skills\\|C:\\work\\|https:\/\/.*sharepoint/i);
+    const guide = await fs.readFile(join(installed, "skills", "marketing-iq", "references", "client-profiles.md"), "utf8");
+    assert.match(guide, /Profile already exists; review it instead of overwriting/);
+    assert.match(guide, /same agent ID/);
+    await assert.rejects(fs.copyFile(example, destination, fs.constants.COPYFILE_EXCL), { code: "EEXIST" });
+    const customized = profile.replace("name: marketing-iq-workiq", "name: marketing-iq-workiq-client");
+    await fs.writeFile(destination, customized);
+    const rebuilt = spawnSync(process.execPath, [join(root, "tools", "MarketingIQ.Portable", "plugin.mjs")], {
+        cwd: root, encoding: "utf8", timeout: 20000
+    });
+    assert.equal(rebuilt.status, 0, rebuilt.stdout + rebuilt.stderr);
+    await fs.cp(plugin, installed, { recursive: true });
+    assert.equal(await fs.readFile(destination, "utf8"), customized);
+    assert.equal(await fs.readFile(example, "utf8"), profile);
+    assert.equal(await fs.stat(join(installed, "com.github.copilot", "agents", "marketing-iq-workiq.agent.md"))
+        .then(() => true, () => false), false, "example must not auto-install as an active plugin agent");
 });

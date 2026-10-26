@@ -48,7 +48,7 @@ for (const source of runtimeAssets) {
                 "Read the files above from their installed component locations, once each.")
             .replace("and the helper's metadata. Select workspace", "and the helper's metadata. Select installed")
             .replace("from the workspace.", "from the installed skill directory.");
-        if (source.endsWith("SKILL.md") || source.endsWith(".agent.md")) {
+        if (source.endsWith("SKILL.md") || source.startsWith(".github/agents/")) {
             if (!text.includes("\n# Role\n")) throw new Error(`Missing role insertion point: ${source}`);
             text = text.replace("\n# Role\n", `\n# Role\n${installedPaths}\n`);
         }

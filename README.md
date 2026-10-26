@@ -58,6 +58,14 @@ The plugin agent is namespaced as `marketing-iq:marketing-iq`; the bare
 
 ## Give it a source and a task
 
+For client-owned connector configuration, see
+`.github\skills\marketing-iq\references\client-profiles.md`. We supply the guide
+and a copyable WorkIQ profile at
+`.github\skills\marketing-iq\examples\marketing-iq-workiq.agent.md`; the client
+owns its reviewed local copy and connector access. The profile reuses installed
+skills and targets compatible hosted WorkIQ retrieve/fetch tools, not every
+WorkIQ distribution. It does not install or authenticate a connector.
+
 There is no hidden tenant or source folder. Supply the source location in your
 message, together with the task:
 
