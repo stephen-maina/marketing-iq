@@ -1,192 +1,199 @@
-# Marketing IQ plugin
+# Marketing IQ
 
-Marketing IQ helps you assess launch readiness, choose an audience/proposition,
-and draft an invitation, exactly three talk points and a follow-up. It produces
-evidence-qualified **internal review drafts**, not publication approval.
+A GitHub Copilot CLI plugin for marketers working on launch decisions, audience
+and positioning choices, event communications and campaign plans. Bring your
+brief and an approved source; Marketing IQ helps distinguish supported claims
+from missing evidence and produces **drafts for internal review**.
 
-## Install and start
+| Your task | What Marketing IQ produces |
+| --- | --- |
+| Assess launch readiness or compare audiences/propositions | An evidence-qualified recommendation, trade-offs and gaps |
+| Prepare event communications | An invitation, exactly three talk points and a follow-up |
+| Plan a campaign, event sequence or measurement approach | A planning proposal based on your supplied brief, with unknowns left explicit |
 
-Requirements: GitHub Copilot CLI with Agent Plugins 1.0 support, an accessible
-Node >=22.18.0 executable, and access to this private repository. Running the
-plugin needs no npm install, TypeScript compiler or .NET runtime/SDK.
-Your GitHub account must separately have access to the repository and Copilot.
+**Pilot status:** version 0.2.0 is available in source, without a tagged release.
+Installation and helper checks are not proof of a complete live marketer journey.
+Connector access, safe evidence handling and reviewed delivery must be established
+in your selected host. Actual marketer acceptance remains pending.
+
+## 1. Before you install
+
+You need:
+
+- GitHub Copilot access and a signed-in Copilot CLI that supports Agent Plugins
+  1.0. The documented marketplace commands were exercised with CLI 1.0.103.
+- Node.js **22.18.0 or later**, available in the same terminal as Copilot.
+- For evidence-backed tasks, an approved compatible connector and permission to
+  read your chosen sources. WorkIQ is the default, but is not included.
+
+Check the executables:
+
+```powershell
+copilot --version
+node --version
+```
+
+Consumers do **not** need npm installation, a TypeScript compiler or a .NET
+SDK/runtime. The JavaScript helpers are already included. Repository access,
+Copilot access and permission to read company data are separate.
+
+## 2. Install the plugin
+
+Run these commands in your terminal:
 
 ```powershell
 copilot plugin marketplace add stephen-maina/marketing-iq
 copilot plugin install marketing-iq@marketing-iq-plugins
 copilot plugin list --json
+```
+
+Review any normal installation prompts. The last command should list
+`marketing-iq`; it confirms installation, not connector access.
+You do not need to clone the repository or copy its `.github` directory.
+
+Open the folder where you want to work on your campaign, then start a new session:
+
+```powershell
 copilot --agent marketing-iq:marketing-iq
 ```
 
-The repository supplies `.github\plugin\marketplace.json`. Both local-path and
-private remote registration, catalog discovery and marketplace-name installation
-were exercised with Copilot CLI 1.0.103 in isolated CLI homes. Local registration
-produced a live link; remote registration produced an installed copy. All three
-skills were discovered from that installed cache, and downloaded helpers ran
-without npm restore. Access to this private repository is still required.
-An invocation from the remote-installed copy also produced the expected
-missing-exposed-connector guidance; it did not retrieve live SharePoint content.
+Use `/agent` to check the selection and `/skills list` to inspect the discovered
+skills. The plugin ships four: `marketing-iq`, `marketing-iq-launch-decision`,
+`marketing-iq-field-activation` and `marketing-iq-campaign-planning`.
+The namespaced agent above selects the plugin; bare `marketing-iq` selects a
+workspace agent. If multiple copies exist, check their reported origins rather
+than assuming the installed copy is active.
 
-The earlier direct repository install
-(`copilot plugin install stephen-maina/marketing-iq:plugins/marketing-iq`)
-was exercised with CLI 1.0.98, which warned that direct installs were deprecated.
-Prefer the marketplace path or the clone-and-load alternative below.
+## 3. Choose your source
 
-Start the last command in the workspace where you want to keep your decisions,
-not the installed plugin directory. In an interactive session, `/agent` lets
-you check/select the Marketing IQ agent; `/skills list` shows its three skills.
-Restart an existing session after installation. Check the selected component's
-location if a workspace or personal copy has the same name; installation alone
-does not prove which copy a session selected.
+For launch and communications tasks, name your connector and an approved folder,
+document or other bounded source in the request. If you omit them, the agent asks
+for what it needs. Do not paste credentials or sharing tokens.
 
-Alternatively, clone and load the ready-to-run plugin:
+**WorkIQ:** your administrator must configure and authenticate a compatible
+WorkIQ connector and expose it to the selected agent. `/mcp` lets you inspect
+connector setup; a listed server does not prove that this agent can retrieve
+your documents. There is no bundled tenant, SharePoint folder or company data.
 
-```powershell
-gh repo clone stephen-maina/marketing-iq
-copilot --plugin-dir .\marketing-iq\plugins\marketing-iq --agent marketing-iq:marketing-iq
-```
+**Other connectors:** clients can supply their own reviewed adapter and agent
+profile. A connector retrieves the data; an adapter maps the actual response
+into Marketing IQ's evidence contract. Merely naming an MCP server or copying
+a profile does not make an incompatible response usable.
 
-Run that command from your own working folder, adjusting the plugin directory
-to the clone's actual location. Compiled JavaScript is committed for consumers.
-Updating an installed plugin uses
-`copilot plugin update marketing-iq`; a locally installed copy must be installed
-again after rebuilding. `--plugin-dir` loads its directory without installing.
-A marketplace catalog is supplied; no MCP server, sign-in service or background
-daemon is added.
-The plugin agent is namespaced as `marketing-iq:marketing-iq`; the bare
-`marketing-iq` name is for the workspace agent, not this native installation.
+Administrators can use the [client-profile guide](.github/skills/marketing-iq/references/client-profiles.md),
+the [WorkIQ profile template](.github/skills/marketing-iq/examples/marketing-iq-workiq.agent.md)
+and the [adapter contract and examples](.github/skills/marketing-iq/references/adapters.md).
+The WorkIQ template targets the hosted retrieve/fetch contract, not every WorkIQ
+distribution. Marketers do not need to write a profile for every task.
 
-## Give it a source and a task
+## 4. Give it a brief
 
-For client-owned connector configuration, see
-`.github\skills\marketing-iq\references\client-profiles.md`. We supply the guide
-and a copyable WorkIQ profile at
-`.github\skills\marketing-iq\examples\marketing-iq-workiq.agent.md`; the client
-owns its reviewed local copy and connector access. The profile reuses installed
-skills and targets compatible hosted WorkIQ retrieve/fetch tools, not every
-WorkIQ distribution. It does not install or authenticate a connector.
+Replace the bracketed placeholders below with your own approved context. These
+are prompt templates, not product evidence or claims of successful execution.
 
-There is no hidden tenant or source folder. Supply the source location in your
-message, together with the task:
+### Assess a launch or compare approaches
 
-> Using WorkIQ, assess Harbor's internal-preview readiness for service owners
-> in Europe. Use only this source folder: https://your-tenant.example/sites/Harbor/Planning.
-> Compare a readiness briefing with a product demo.
+> Using WorkIQ and only [approved source folder], assess [product/topic]
+> readiness for [audience] in [geography]. Compare a readiness briefing with a
+> product demo. Our objective is [objective], and attendees should leave able
+> to [desired action]. Explain the recommendation, trade-offs and missing
+> evidence. Leave the result unsaved.
 
-WorkIQ must already be installed, authenticated and exposed in that selected
-agent context. A URL establishes scope, not access or authority. The default
-uses scoped SharePoint documents, with relevant Email/Meetings context only when
-needed. Packaged source routes are intentionally empty; private mappings are
-not redistributed. Ordinary users can supply a URL without editing any files.
+Review the recommendation and gaps. If you want to retain the direction, request
+a save. The agent must preview the exact record, scope and replacement effect
+and obtain confirmation before writing. Where the host supports the operation,
+accepted records live in your working folder's `local-data\launch-decisions`,
+not the plugin cache.
 
-Before selecting a route, the agent inspects the tool names and schemas actually
-exposed by its host. WorkIQ is a preference, not a hardcoded tenant or proof of
-availability. Without an explicit connector choice, a unique exposed compatible
-connector can be selected; ambiguous choices require clarification. No compatible
-exposed tool produces setup guidance, not a claim that a server is uninstalled.
-Use your host's normal connector setup and authentication, ensure the selected
-agent can access it, then start a fresh session and retry the same source scope.
-This does not authorize a provider switch after a selected route fails or denies
-access.
+### Draft an invitation, talk points and follow-up
 
-For another connector, install/configure it using your host's normal procedure,
-then explicitly name the adapter ID, exposed retrieval tool and source scope.
-The connector retrieves; an adapter maps its **actual observed** results to the
-closed handoff in `skills\marketing-iq\references\adapters.md`. Marketing IQ
-admits the evidence, reasons over it, and requests a separate model review.
-`examples\adapter-template.mjs` is a no-network mapping example, not a connector
-installer or executable registry. The selected Copilot agent's allow-list may
-not expose your custom connector: report that gap, or have the operator provide
-an explicitly reviewed host-native configuration. Never bypass a denial.
+> Using WorkIQ and only [approved source folder], draft an invitation, exactly
+> three talk points and a follow-up for [topic], [audience] and [geography].
+> Use this current proposal: [format, objective and desired attendee action].
+> Keep the tone [tone] and invitation under [word limit]. Leave unknown event
+> details as placeholders and do not send anything.
 
-For a concrete alternative, `examples\github-contents-adapter.mjs` maps a
-documented GitHub Contents API file response plus an explicit tool/scope
-observation to the same handoff. Its companion fixture is visibly synthetic.
-See `references\adapters.md` for the input contract and stdin invocation. This
-example does not install a GitHub connector or establish live retrieval.
+You can instead request an applicable accepted direction in a fresh session in
+the same working folder. The agent checks saved records; it does not assume that
+an earlier chat is accepted direction. Both routes still require admitted evidence.
 
-To try the fictional included example instead of connecting enterprise data:
+### Plan a campaign without retrieving sources
 
-> Explicitly use the bundled synthetic local-file example, not WorkIQ or live
-> sources. Assess Harbor readiness for service owners in Europe and propose a
-> readiness briefing. Keep the result labelled synthetic and leave it unsaved.
+> Using only this brief, propose a campaign plan for [topic] aimed at [audience].
+> Our objective is [objective], the desired action is [action], the available
+> channels are [channels], and our constraints are [timing/resources].
+> Include before/during/after activities, deliverables and a measurement plan.
+> Treat this as planning context, not verified product facts. Leave unknown
+> baselines, targets and results unknown.
 
-The agent resolves the example and helpers from the installed skill's location.
-You do not need to copy `.github` into your workspace. The local-file example is
-synthetic only, not general ingestion of arbitrary production files.
+This separate planning route does not need a connector for a user-brief-only
+proposal. It does not verify readiness or replace the evidence-backed invitation
+workflow. Ask for one main deliverable at a time; mixed requests prioritize Launch,
+then Field communications, then planning.
 
-## Interaction and saved direction
+## 5. Review and refine
 
-For Launch, review the recommendation and evidence gaps. Choosing "save" starts
-preparation, not a write. The agent shows the exact direction, scope, validity,
-ID/version and replacement effect; only your confirmation permits saving.
-Records live in your working folder's `local-data\launch-decisions`, not the
-plugin cache. Source bodies and whole assessments are not saved there.
+Give concrete feedback: which decision the draft helped, what wording needed
+editing and whether the proposed next action fits your audience. Ask for focused
+edits rather than supplying unsupported claims.
 
-In a fresh session in the same workspace, ask for an invitation using your
-accepted direction and give the product, topic, audience, geography and current
-source. The agent discovers an applicable record through the decision helper;
-it does not scan previous conversations. A current proposal also works without
-a saved record. Unknown event logistics become placeholders. No direction or
-no admitted evidence produces an explicit blocker, not invented copy.
+Launch and Field results require independent model review, which is **not**
+human acceptance or permission to publish. The plugin does not send invitations,
+publish content, grant source permissions or invent evidence.
 
-Readable answers and session-local canonical diagnostic JSON are separate from
-saved direction. Diagnostics, when the host supports their safe creation, do
-not approve or accept anything. Independent model review is likewise not
-product, execution or publication approval.
+Preferences are optional and host-dependent. If a permitted remembered choice
+is available, the agent confirms it before reusing it for retrieval. Where native
+memory or the requested scope is unavailable, choices remain session-only.
+Private source addresses and accepted direction are not preference memory.
 
-## Safe packet files
+## Updates and troubleshooting
 
-Hosts with an already permitted native data-only file writer can stage a review
-packet in session storage, read it back, then use these file inputs:
+To update the installed marketplace plugin, then start a fresh session:
 
 ```powershell
-node "<shared-skill>\scripts\Test-ReviewPacket.mjs" --packet-file "<absolute-packet.json>"
-node "<shared-skill>\scripts\Save-ResultArtifact.mjs" --directory "<session-files>" --packet-file "<absolute-final-reviewed-packet.json>"
+copilot plugin update marketing-iq@marketing-iq-plugins
+copilot --agent marketing-iq:marketing-iq
 ```
 
-The export validates the whole packet and writes only its canonical candidate;
-it does not replace the separate semantic reviewer. See
-`references\packet-transport.md` for staging, exact review pairing and read-back.
-Do not embed source or draft bodies into shell commands to manufacture stdin.
-The selected native Marketing IQ agent's current tool profile has no native file
-writer. File-input support does not remove that host capability limit, and the
-plugin does not broaden permissions to hide it.
+| What you see | What to do |
+| --- | --- |
+| `copilot` or `node` is not found | Install the required executable through your approved setup process and reopen the terminal. |
+| Plugin or skills are missing | Check `copilot plugin list --json`, restart and inspect the selected agent and skill origins. |
+| Connector tools are unavailable or incompatible | Ask your administrator to check the selected profile's actual tools and response contract; plugin installation does not configure them. |
+| An instruction read or source operation is denied | Stop that operation and report its nonsecret path/scope and error classification to the administrator. Do not bypass the denial. |
+| Evidence transport, review or saving is unavailable | Treat the reported host capability gap as unresolved. Do not put source bodies into shell commands or manufacture evidence files. |
 
-## Hosts and limits
+The packaged agent does not request a native data-only file writer or memory
+writer. File-input helpers alone cannot supply those capabilities. The historical
+installed-agent denial describes one configuration, not proof that every current
+installation fails. See the [host acceptance guide](docs/integration/MarketingIQ_Host_Acceptance.md)
+for setup checks and a real-input pilot.
 
-This distribution uses Agent Plugins 1.0: portable `skills` and a Copilot-specific
-agent in `com.github.copilot\agents`. Copilot CLI is the exercised host.
-Another Agent Plugins-compatible host may load the skills, but its tool mapping,
-safe input transport, separate reviewer and invocation must be verified there.
-Do not assume another CLI loads the Copilot-specific agent.
+## More information
 
-The plugin does not install/authenticate connectors, grant access, guarantee
-model compliance, send invitations or publish marketing material. It cannot
-turn synthetic evidence into live product truth. See
-`docs\integration\MarketingIQ_Plugin_Demonstration.md` in the source repository
-for actual model-run results and remaining gaps. Remote installation, clean
-consumer skill discovery and downloaded Node helper execution were exercised
-separately; these do not establish live connector access or model compliance.
+- [Detailed installation, setup and usage guide](docs/integration/MarketingIQ_Plugin.md),
+  including clone-and-load and client-owned profiles.
+- [Optional marketing extensions](.github/skills/marketing-iq/references/optional-extensions.md):
+  a curated catalogue and reviewed installation handoff for selected
+  `coreyhaines31/marketingskills` skills. They are not bundled or automatically
+  installed; runtime compatibility is unverified.
+- [Demonstrations and evidence limits](docs/integration/MarketingIQ_Plugin_Demonstration.md).
+- [Change history](CHANGELOG.md).
 
-## Development
+## For developers
 
-Canonical instructions remain in `.github\skills` and `.github\agents`.
-`plugins\marketing-iq` is generated: do not edit those copies directly.
+Canonical instructions are in `.github\skills` and `.github\agents`.
+`plugins\marketing-iq` is generated; do not edit it directly.
 
 ```powershell
 npm ci --ignore-scripts
+npm run check:generated
 npm test
 npm run test:plugin
+npm run test:package
 ```
 
-`npm run build:plugin` compiles the existing Node helpers and generates only
-allowlisted native components, rewrites asset-path notation for installation,
-and substitutes an empty source registry. It leaves decision stores relative
-to the consumer workspace. Run the existing alternative workspace archive
-checks with `npm run test:package`.
-
-Developer tests check deterministic helper/package behavior; they are distinct
-from fresh-model demonstrations. The optional C# parity suite needs the legacy
-executable and is not a consumer or ordinary Node test prerequisite. This
-private repository grants no additional redistribution rights.
+After canonical changes, run `npm run build:plugin` and commit the matching
+generated assets. Developer checks are separate from real marketer acceptance.
+See the detailed guide for release preparation. No open-source license is
+currently included.

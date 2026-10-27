@@ -10,9 +10,9 @@ This version is unreleased; installed copies do not change when source is edited
 ## Install and start
 
 Requirements: GitHub Copilot CLI with Agent Plugins 1.0 support, an accessible
-Node >=22.18.0 executable, and access to this private repository. Running the
-plugin needs no npm install, TypeScript compiler or .NET runtime/SDK.
-Your GitHub account must separately have access to the repository and Copilot.
+Node >=22.18.0 executable, and Copilot access. Running the plugin needs no npm
+install, TypeScript compiler or .NET runtime/SDK. Repository visibility does
+not grant Copilot access or permission to read your source data.
 
 ```powershell
 copilot plugin marketplace add stephen-maina/marketing-iq
@@ -26,7 +26,8 @@ private remote registration, catalog discovery and marketplace-name installation
 were exercised with Copilot CLI 1.0.103 in isolated CLI homes. Local registration
 produced a live link; remote registration produced an installed copy. The three
 skills then shipped were discovered from that installed cache, and downloaded helpers ran
-without npm restore. Access to this private repository is still required.
+without npm restore. Those observations used the repository while it was private;
+they do not establish a fresh user's public-marketplace or live-source journey.
 An invocation from the remote-installed copy also produced the expected
 missing-exposed-connector guidance; it did not retrieve live SharePoint content.
 
@@ -67,10 +68,13 @@ checks the fixed installed entrypoints against `installation.json`. It reports
 version and hashes, not publisher authenticity, discovery, tool exposure,
 authentication or live source access. It is not a workaround for a denied read.
 On October 27, 2026 a clean-consumer selected-agent setup run stopped at the
-generated shared SKILL.md with **Sandbox policy denial**. The CLI administrator
-must resolve that exact denied path through supported setup before repeating
-the selected-host journey. See `MarketingIQ_Host_Acceptance.md` in the source
-repository for the protocol and exact observation.
+generated shared SKILL.md with **Sandbox policy denial**. This is an observation
+about that run, not proof that every current installation fails. Compare the
+selected agent and actual instruction origin before applying its diagnosis to
+another configuration. For that denied boundary, the CLI administrator must
+resolve the exact path through supported setup before a retry. See
+`MarketingIQ_Host_Acceptance.md` in the source repository for the protocol and
+exact observation.
 
 ## Give it a source and a task
 
@@ -320,11 +324,12 @@ The Windows/Linux validation workflow pins its Node/actions versions and runs
 the local suites. The release workflow requires a tag matching the package
 version, packages the workspace/native plugin with SHA-256 receipts and creates
 a draft prerelease for human review. It does not approve a final release or
-prove live host operation. Neither workflow has been remotely exercised for
-this unreleased change. Update `CHANGELOG.md`, review generated drift, validate
-and obtain publication approval before pushing a release tag.
+prove live host operation. The validation workflow passed on Windows and Ubuntu
+in run `40500565113` at commit `36d9130c763afc481840ffe313688da487e50e83`;
+the release workflow remains unexercised. Update `CHANGELOG.md`, review generated
+drift, validate and obtain publication approval before pushing a release tag.
 
 Developer tests check deterministic helper/package behavior; they are distinct
 from fresh-model demonstrations. The optional C# parity suite needs the legacy
-executable and is not a consumer or ordinary Node test prerequisite. This
-private repository grants no additional redistribution rights.
+executable and is not a consumer or ordinary Node test prerequisite.
+No open-source license is currently included.
