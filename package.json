@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node tools/MarketingIQ.Portable/build.mjs",
     "check:generated": "node tools/MarketingIQ.Portable/build.mjs --check",
-    "test": "npm run build && node --test tests/portable/*.test.mjs tests/hosted-preflight/review-packet.test.mjs",
+    "test": "npm run build && node --test --test-reporter=spec tests/portable/*.test.mjs tests/hosted-preflight/review-packet.test.mjs",
     "package": "npm run build && node tools/MarketingIQ.Portable/package.mjs",
     "build:plugin": "npm run build && node tools/MarketingIQ.Portable/plugin.mjs",
     "test:plugin": "npm run build:plugin && node --test tests/native-plugin/*.test.mjs",
