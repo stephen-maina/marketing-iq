@@ -21,6 +21,7 @@
       "testingAgentsCommit": "75b68b317f409944118fa138fbc71487118e8807",
       "testingAgentsPublication": "Normal push succeeded and ls-remote verified this SHA on main. Working tree was clean.",
       "ciDiagnosticObservation": "Run 40498107807 at 75b68b3: Ubuntu passed, Windows npm test failed again. No RR2-F01 annotation reached Checks because TAP comments prefix test stderr. Switch only npm test's built-in reporter to spec, whose Node v22.18.0 source forwards test stdout/stderr unchanged; preserve test selection, assertions and nonzero exit handling.",
+      "ciStdinFinding": "Run 40498829149 at f174d77 exposed RR2-F01: host-default negative case failed at input with Selected tool result content was not valid JSON, not exact quote mismatch. A failure-only probe now reports only Node version, byte count, first 16 bytes, first NUL position and JSON parse success for the generated fixture. No live source or raw CI logs are retrieved. The original failure is rethrown; transport cause remains under investigation.",
       "followUpIdentity": "Resolve the commit containing the testing profiles through Git history; final push verification is a transport observation, not a self-referential prewritten commit hash."
     },
     "stagedCheckCorrection": "The first staged diff check found trailing blank lines in five newly added extracted references, which an unstaged check had not covered. Removed only those blank lines and regenerated packaged copies; staged check and check:generated passed before the implementation commit.",

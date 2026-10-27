@@ -307,6 +307,27 @@ test("RR2-F01 documented Windows pipe preserves non-ASCII quote distinctions", {
                 assert.equal(result.status, expected === "pass" ? 0 : 1);
             } catch (error) {
                 console.error(`::error title=RR2-F01::${diagnostic}`);
+                // Probe only this generated fixture, never a live evidence packet.
+                const probePath = join(directory, "stdin-probe.mjs");
+                writeFileSync(probePath, `
+import { readFileSync } from "node:fs";
+const bytes = readFileSync(0);
+let validJson = false;
+try { JSON.parse(bytes.toString("utf8")); validJson = true; } catch {}
+console.log(JSON.stringify({
+    node: process.version,
+    byteLength: bytes.length,
+    firstBytes: Array.from(bytes.subarray(0, 16)),
+    firstNul: bytes.indexOf(0),
+    validJson,
+}));
+`, "utf8");
+                const probe = spawnSync("powershell.exe", [
+                    "-NoProfile", "-Command",
+                    command.replace(scriptPath.replaceAll("'", "''"), probePath.replaceAll("'", "''")),
+                ], { encoding: "utf8", timeout: 15000, maxBuffer: 1024 * 1024 });
+                if (!probe.error && probe.status === 0)
+                    console.error(`::error title=RR2-F01-bytes::${JSON.stringify(readJson(probe))}`);
                 throw error;
             }
         }
