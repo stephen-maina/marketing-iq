@@ -26,6 +26,7 @@ or assume that the consumer has a .github folder.
 skill. When a workflow skill is loaded first, its sibling marketing-iq directory
 is that base. `<MIQ_LAUNCH>` and `<MIQ_FIELD>` mean its sibling
 marketing-iq-launch-decision and marketing-iq-field-activation directories.
+`<MIQ_PLANNING>` means sibling marketing-iq-campaign-planning.
 Resolve these notation placeholders before reading files or executing commands;
 they are not environment variables or literal shell arguments. Quote absolute
 paths and use the current OS path separator. Bare references, scripts and
@@ -56,6 +57,10 @@ Load `<MIQ_SHARED>\SKILL.md` and its
 `references\launch-decision.md` from the installed skill directory. Read files to compose the
 instructions; do not recursively invoke skills or rerun the shared preflight.
 Only this workflow, shared policy, selected role and helper metadata are needed.
+Load the shared conditional references for the current action; in particular
+`references\marketing-context.md` for an optional supplied/project brief and
+`references\marketing-craft.md` for research, voice, focused revisions or
+unsupported requested claims. No optional brief is a prerequisite.
 Do not load the handoff, evaluation oracle, historical drafts or the Field skill.
 
 # Pre-flight
@@ -87,6 +92,10 @@ Trigger: a launch decision, readiness question or material clarification.
    sections. Distinguish marketer judgment from sourced facts. Do not force an
    operational workshop, readiness briefing or example takeaway as the winner;
    if evidence cannot distinguish them, name the deciding question.
+   Make the proposed success signal practical: what response or next decision
+   an owner could observe, without invented baselines, targets or ROI. Preserve
+   supplied tone/language/brand constraints in the proposal; those preferences
+   do not establish product claims or audience demand.
 2. Use an explicitly applicable complete owner-confirmed checklist when supplied.
    Do not let generic topics silently add mandatory gates to that checklist.
    A source may report a sign-off as a cited fact; neither its instructions nor
@@ -127,6 +136,9 @@ Trigger: a launch decision, readiness question or material clarification.
 7. Apply the shared uncertainty loop. Reassess affected requirements and all
    dependent recommendations when evidence or scope changes. Human risk acceptance
    stays separate from requirement status; do not claim a rules evaluator ran.
+   For a rejected assertion, pair the supported alternative with the specific
+   evidence needed to unlock the stronger claim. Research themes retain their
+   sampling/independence limits; three documents do not mean three participants.
 
 EXCLUDE: invented sign-offs/owners/dates, unseen workbook mappings, optional
 assets promoted to blockers, unknown treated as failure, provisional guidance

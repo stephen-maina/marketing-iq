@@ -1,0 +1,8 @@
+.github/agents/** text eol=lf
+.github/skills/** text eol=lf
+.github/workflows/** text eol=lf
+plugins/marketing-iq/** text eol=lf
+tools/MarketingIQ.Portable/** text eol=lf
+docs/integration/*.md text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf

@@ -11,7 +11,8 @@ import { root, run, record, publish, discover, candidate, cliRelative } from "..
 test("allowlisted archive runs the synthetic Launch-confirm-discover-Field helper journey after relocation", async t => {
     const temporary = await fs.mkdtemp(join(tmpdir(), "miq-relocated-test-"));
     t.after(() => fs.rm(temporary, { recursive: true, force: true }));
-    const archive = join(root, "artifacts", "marketing-iq-workspace-0.1.0.tgz");
+    const { version } = JSON.parse(await fs.readFile(join(root, "package.json")));
+    const archive = join(root, "artifacts", `marketing-iq-workspace-${version}.tgz`);
     const hash = createHash("sha256").update(await fs.readFile(archive)).digest("hex");
     assert.match(await fs.readFile(archive + ".sha256", "utf8"), new RegExp("^" + hash + "  "));
     const extraction = spawnSync("tar", ["-xzf", archive, "-C", temporary], { encoding: "utf8", timeout: 20000 });

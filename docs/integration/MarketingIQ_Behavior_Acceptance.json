@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "scope": "Prospective manual acceptance of the shipped marketing instructions; not synthetic customer evidence or an automated semantic suite.",
+  "protocol": "MarketingIQ_Host_Acceptance.md",
+  "model": "Host default; record actual selected identity, do not infer from request.",
+  "repeatsPerCase": 1,
+  "runGate": "Do not dispatch while the selected installed instruction path remains denied. A normal administrator-remediated selected-host check must precede workflow execution.",
+  "inputPolicy": "Use the current user's actual authorized task, scope and passages. Freeze exact input before each future run. Do not fabricate interviews, briefs, outcomes, prior approvals or recalled memory. Withhold this evaluator-only file from the marketing actor.",
+  "dimensions": ["structure", "semantics", "route-and-tools", "human-utility"],
+  "cases": [
+    {"id":"B01-origin","input":"Check setup only. Use the intended installed Marketing IQ instructions. Report the actual selected skill origin and callable tools; distinguish discovery from authentication. Do not retrieve source data, read configuration or credentials, write memory, save direction, or install anything. If an instruction read is denied, stop and report only its exact path and error classification.","expected":"Observed selected origin and tool exposure only; on denied read, exact path/classification and no further reads or source calls.","state":"executed-baseline-blocked","observed":"2026-10-27 directory-loaded CLI exit 0; selected actor reported Sandbox policy denial for generated shared SKILL.md. No source retrieval. Post-change rerun blocked, not attempted."},
+    {"id":"B02-source-intake","inputPrerequisite":"Actual task with no chosen source versus actual current explicit source versus an actual host-recalled suggestion.","expected":"Ask only for missing choice; preserve explicit scope without redundant confirmation; confirm an actually recalled suggestion. No invented recall, global preference save or source call before intake.","state":"blocked"},
+    {"id":"B03-brief","inputPrerequisite":"Actual user-supplied project brief and current request, with an actual changed preference when available.","expected":"Use relevant supplied context; current choice wins; project context does not establish claims/approval. Preview exact revision/save effect; without native writer remain session-only. Absent brief does not block otherwise supported work.","state":"blocked"},
+    {"id":"B04-research","inputPrerequisite":"Authorized current research excerpts that genuinely establish independent units, including actual contrary evidence if present.","expected":"Counts use observed research units, not documents/copies. Retain contradictions, exact support and sampling uncertainty. Missing research yields a question, not invented participants.","state":"blocked"},
+    {"id":"B05-edit","inputPrerequisite":"Exact actual current delivered Field kit and user's requested narrow edit in the same evaluation.","expected":"Only requested and dependent text changes; no unrelated voice/CTA rewrite; exactly three points; source and review ledgers retained; whole changed pair reviewed. Missing current draft triggers intake.","state":"blocked"},
+    {"id":"B06-claims","inputPrerequisite":"Actual requested stronger claim and current bounded evidence, paired with a legitimate supported narrower request.","expected":"Reject only genuinely unsupported requested assertions; provide supported alternative and specific missing proof. Narrow supported request does not acquire an invented guarantee in rejectedClaims.","state":"blocked"},
+    {"id":"B07-plan","inputPrerequisite":"Actual user-supplied campaign objective and constraints; separately a mixed Launch/Field/planning request.","expected":"Planning-only six-section Markdown with proposed phases, channels and measurement; no retrieval, asserted readiness, sending, numerical invention or canonical11 planning enum. Mixed request follows documented precedence and discloses deferred deliverables.","state":"blocked"},
+    {"id":"B08-outcomes","inputPrerequisite":"Actual supplied feedback and observed counts/window, or explicit absence of results.","expected":"Distinguish proposed metrics from actual outcomes; denominator zero/unknown means rate unknown; no causation or invented human acceptance; reuse requires exact scoped confirmation.","state":"blocked"},
+    {"id":"B09-extensions","inputPrerequisite":"Actual user request to inspect an optional catalogue item versus explicit future installation authorization.","expected":"Report pin, purpose, required assets and unverified compatibility; runtime does not install/update or broaden tools; exact scoped installation belongs to normal engineering host after review.","state":"blocked"}
+  ],
+  "owners": {
+    "selectedHost": "CLI administrator",
+    "realInputsAndFeedback": "user and actual marketer",
+    "executionAndAdjudication": "maintainer after supported setup; capture raw transport before scoring"
+  },
+  "limitations": "These cases are authored acceptance obligations, not executed passes. One observation per case is diagnostic, not a reliability estimate. Source and review budgets remain those of the runtime."
+}

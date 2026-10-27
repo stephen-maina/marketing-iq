@@ -98,6 +98,7 @@ Example request (the URL is a placeholder; provide your real approved boundary):
 | --- | --- |
 | Profile not listed | Check file location/ID, collisions and restart; connector access is not yet tested. |
 | Shared skill not found | Check plugin installation/discovery; do not copy workflow logic into the profile or guess paths. |
+| Shared skill loads but a required reference/workflow read is denied | Stop at that instruction boundary. Report the exact nonsecret instruction path and denial classification to the host owner; skill injection does not grant filesystem access. Do not reconstruct the contract, read it through a shell, relocate it or widen permissions. |
 | Retrieval tool not exposed | Report the missing capability. Administrator checks the actual tool name, host registration and reviewed profile exposure; do not assume installation/authentication is missing. |
 | Tool exposed but schema incompatible | Stop; inspect the real schema and adapter requirements. A tool-name change alone is insufficient. |
 | Actual authentication-required response | Stop that operation; use the normal human-operated host authentication flow. |
@@ -105,12 +106,67 @@ Example request (the URL is a placeholder; provide your real approved boundary):
 | Scoped retrieval succeeds | Access is observed for that operation only; source identity, scope, original body, admission and separate review still need checking. |
 | Safe packet writer/export unavailable | Disclose the transport/delivery gap; this profile does not add that capability. |
 
+### Smallest host-owner handoff
+
+Keep these checks in the **same selected CLI context**; a parent session's tools,
+read permissions or successful retrieval do not establish this agent's capabilities.
+
+1. Select the reviewed client profile and use `/skills info marketing-iq` to
+   check the intended plugin origin and reported location. An explicitly
+   selected CLI agent already follows repository custom instructions; adding
+   `include-custom-instructions: true` addresses delegated subagents, not a
+   denied reference read. See the official custom-agent guide below.
+2. Verify that required static plugin references and the selected workflow can
+   be read through the normal host read tool. If the reported path is denied,
+   give the host owner that path and error classification. Have them resolve
+   the approved installation/host-loading issue through their normal support
+   process before another evaluation. No plugin instruction grants permission,
+   and this guide does not prescribe broader path grants or copying denied files.
+3. Inspect the selected agent's actual compatible WorkIQ tools. Only the host
+   owner can resolve registration/exposure through the normal host process,
+   with authentication performed by a human only when a response requires it.
+   No missing-tool observation establishes an authentication problem.
+4. Before processing live bodies, establish the exact permitted transport from
+   `packet-transport.md`: an existing usable current capture/safe stdin, or an
+   actually exposed permitted native data-only writer. The unchanged narrow
+   profile does not request that writer. A filename option, `execute`, or a
+   successful connector call cannot supply it. If neither transport exists,
+   stop the affected processing step and report the gap to the host/profile
+   owner; a separately reviewed host integration is additional work, not an
+   implemented plugin feature. Do not put source bodies in shell commands or
+   request that marketers manufacture evidence files.
+
+After those prerequisites are observed, run one normally authorized scoped
+evaluation, preserving any denied scope. Success requires current source
+passages, admission, independent review and actual delivery receipts where
+required—not just a loaded skill, exit code zero or a blocked JSON object.
+
 For a different connector, the client creates a differently named copy with
 only reviewed actual tools and updates its connector-specific selection and
 schema checks. Keep the shared skill composition and all evidence/denial/review
 rules. Replacing WorkIQ tool names without adjusting those connector-specific
 instructions is not a working adapter. No generator, registry or self-updating
 permission mechanism is supplied.
+
+## Optional native preferences
+
+The shared `source-preferences.md` contract asks for a current source selection
+or confirmation of an eligible remembered suggestion before retrieval. Client
+profiles must retain this gate even when their connector is fixed. Selecting the
+WorkIQ profile chooses WorkIQ, not a folder or unrestricted tenant-wide scope.
+
+Recall supplied by the host and permission to write memory are separate. The
+example's unchanged narrow tool list does not request a native memory writer.
+Do not infer support from a successful save in another agent or from `/memory`
+status. With missing/disabled memory or unsupported storage scope, the workflow
+asks normally and keeps choices session-only; it must not invent successful
+saves, create a fallback store or edit its own permissions.
+
+Client owners should separately verify native memory in their selected host:
+eligible preference and scope, actual write receipt, subsequent host-supplied
+recall, and explicit confirmation before source access. Private source addresses
+and sensitive data are not preference-memory candidates. A packaging check or
+prompted imitation of remembered input proves none of those native operations.
 
 ## Updates and validation
 
@@ -155,9 +211,31 @@ including copying the profile, refusing overwrite and preserving a customized
 independent client copy when packaged assets were rebuilt/replaced. These are
 artifact/helper checks, not evidence of live connector access.
 
+### Observed recheck: October 27, 2026
+
+The nonsecret validation receipt for published commit
+`7ce15c27b6c2ca2dfcb5a7fb6f0f0269eef27dfd` records a fresh
+`marketing-iq-workiq` CLI invocation against the published checkout: shared-skill
+loading succeeded, three required instruction reads failed at the readable-path
+permission boundary, and zero WorkIQ retrieval calls occurred. The final result
+was blocked with zero facts, sources and sections, despite process exit code
+zero. The receipt records no permission changes or credential inspection.
+This was not successful live end-to-end execution.
+
+The source builder already maps workspace skill paths to installed component
+locations; the client example already resolves references from the discovered
+shared-skill directory. These facts do not establish a plugin-owned path bug or
+repair the observed denial. No prompt or tool-allow-list change is presented as
+a fix. Instruction accessibility remains a host installation/loading boundary,
+connector exposure remains a selected-context boundary, and safe data transport
+must be observed separately. No additional CLI retry was performed for this
+documentation update, and another host's successful operations are not proof for
+the fresh CLI. Live CLI completion remains unresolved.
+
 ## Host references
 
 - [Copilot CLI custom agents](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli)
+- [Copilot CLI skill discovery and loading](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)
 - [Copilot custom-agent configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Copilot CLI MCP configuration](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers)
 - [Microsoft Work IQ](https://github.com/microsoft/work-iq) (inspect the selected distribution; its tools may differ)

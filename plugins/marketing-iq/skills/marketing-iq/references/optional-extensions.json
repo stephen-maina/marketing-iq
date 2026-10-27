@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/coreyhaines31/marketingskills",
+  "revision": "17772c7a80b7b8c7a47af30f648374cd8bd8adc5",
+  "release": "v2.13.5",
+  "checkedOn": "2026-10-27",
+  "status": "pinned",
+  "licensePath": "LICENSE",
+  "installation": "not-installed-by-marketing-iq",
+  "compatibility": "instruction-and-tree-inspected; runtime-unverified",
+  "entries": [
+    {
+      "id": "copywriting",
+      "purpose": "Landing-page structure and copy techniques beyond the Field kit.",
+      "path": "skills/copywriting",
+      "entrypointGitBlob": "e70bd2e1f4e96cb94ef69b3899150950b0128be5",
+      "requiredFiles": ["SKILL.md", "evals/evals.json", "references/ai-tells.md", "references/copy-frameworks.md", "references/natural-transitions.md"],
+      "operations": "Drafting/revision only; no connector supplied.",
+      "adaptation": "Preserve the user's voice and narrow edit scope. Do not import a blanket banned-word policy or replace Marketing IQ's output/evidence contract."
+    },
+    {
+      "id": "customer-research",
+      "purpose": "Interview/survey planning and research-source methods.",
+      "path": "skills/customer-research",
+      "entrypointGitBlob": "a00538447e9e75489dbf07378325dfa428ec46da",
+      "requiredFiles": ["SKILL.md", "evals/evals.json", "references/interviews-and-surveys.md", "references/source-guides.md"],
+      "operations": "May propose external research and outreach; each actual operation needs a separately authorized boundary.",
+      "adaptation": "Independent observations are not document counts. Do not expand current source limits, contact people or scrape sources through the marketing runtime."
+    },
+    {
+      "id": "events",
+      "purpose": "Hosting, speaking, sponsorship and event-portfolio options.",
+      "path": "skills/events",
+      "entrypointGitBlob": "ca56d1cd1edc7baf05a1cab50f8d56b262fb8f39",
+      "requiredFiles": ["SKILL.md", "evals/evals.json", "references/event-portfolio-strategy.md", "references/speaking.md", "references/sponsorship-roi.md", "references/webinar-funnel.md"],
+      "operations": "Planning only here; booking, spending, invitations and publication remain separate actions.",
+      "adaptation": "Treat upstream numerical heuristics and examples as unevaluated guidance, not this user's results or approved budget."
+    },
+    {
+      "id": "analytics",
+      "purpose": "Detailed analytics/event taxonomy and implementation planning.",
+      "path": "skills/analytics",
+      "entrypointGitBlob": "4ae578717344df70ade772e7712c6e151d9c9e36",
+      "requiredFiles": ["SKILL.md", "evals/evals.json", "references/event-library.md", "references/ga4-implementation.md", "references/gtm-implementation.md"],
+      "operations": "Tracking implementation can alter data collection and requires its own engineering approval.",
+      "adaptation": "Mutable main-branch tool-registry/integration links are outside this pin. Resolve selected tools at this immutable revision before separate approval; no credential acquisition or tool execution is included."
+    },
+    {
+      "id": "ab-testing",
+      "purpose": "Experiment hypotheses, design and test templates.",
+      "path": "skills/ab-testing",
+      "entrypointGitBlob": "2549315f9c0afb5acce59adadf526737858c55ef",
+      "requiredFiles": ["SKILL.md", "evals/evals.json", "references/sample-size-guide.md", "references/test-templates.md"],
+      "operations": "Design only here; does not run experiments or supply traffic/measurement data.",
+      "adaptation": "No invented sample sizes, baselines, significance or observed uplift. Verify assumptions with actual measurement inputs."
+    }
+  ],
+  "sharedDependencies": {
+    "projectContext": "Upstream mentions optional .agents/.claude product-marketing briefs. Do not search them automatically; use only the user's selected current project brief.",
+    "relatedSkills": "Cross-skill recommendations are not installation dependencies automatically authorized by choosing one skill.",
+    "tools": "Root tools/REGISTRY.md and integration guides are separate optional assets; mutable links must be resolved at the pin before an operational integration is reviewed."
+  }
+}

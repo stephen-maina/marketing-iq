@@ -1,4 +1,4 @@
-# Marketing IQ portable hosted workspace 0.1
+# Marketing IQ portable hosted workspace 0.2
 
 For native Copilot plugin installation, use `MarketingIQ_Plugin.md` in this
 directory. The archive workflow below remains a separate workspace-bundle option.
@@ -22,7 +22,8 @@ No .NET runtime/SDK, TypeScript compiler, npm install or developer dependency is
 needed to run the bundle. A connector's own prerequisites remain its operator's
 responsibility; this bundle does not install or authenticate one.
 
-Extract `marketing-iq-workspace-0.1.0.tgz` into a **new empty directory** using
+The current 0.2.0 source is unreleased. After an authorized release, extract
+`marketing-iq-workspace-0.2.0.tgz` into a **new empty directory** using
 your archive tool (the archive has a `package` top-level directory). Open that
 `package` directory as the workspace. Do not extract over an existing workspace
 or replace user settings. Existing workspaces must explicitly merge the
@@ -74,6 +75,25 @@ private tenant mappings are not redistributed. Supply an explicit source URL
 or maintain your own route entries using the existing closed registry format.
 No private sources, decisions, captures, machine hooks or credentials are bundled.
 
+## Optional context, planning and extensions
+
+The shared instructions load detailed connector/evidence/presentation/review
+procedures only on their stated branches. Optional project briefs, customer
+research, focused edits and feedback have their own shared references/templates.
+A brief is user context, not admitted evidence, accepted direction or a memory
+fallback. A native data-only writer and specific approval are required to save;
+otherwise the result stays unsaved.
+
+`marketing-iq-campaign-planning` is a separate six-section Markdown workflow
+using the current user brief, without retrieval or automatic export. Its event/
+channel/measurement proposals are not readiness verdicts or observed performance.
+Mixed requests select Launch first, then Field, then planning and disclose what
+is deferred. Existing Launch/Field schemas are unchanged.
+
+The optional extension catalogue records pinned full skill trees and integration
+cautions. No third-party skill, executable or connector is installed by the
+bundle. See `references\optional-extensions.md` before any scoped installation.
+
 ## Launch to fresh-session Field
 
 1. In the host, supply a Launch brief and explicit source scope/adapter. For
@@ -117,10 +137,14 @@ The CLI cannot simulate that by printing "pass".
 
 ## Developer build and verification
 
-In the source workspace only: `npm ci --ignore-scripts`, `npm test`, then
+In the source workspace only: `npm ci --ignore-scripts`,
+`npm run check:generated`, `npm test`, then
 `npm run package`. TypeScript builds into the shipped `scripts\portable` folder;
 runtime imports are Node built-ins only. `package-lock.json` pins build dependencies.
 The package builder uses an explicit allowlist and emits an archive and SHA-256.
+Root package version is the source for generated runtime/plugin metadata.
+Check mode builds into a temporary directory and never repairs drift; tests
+regenerate artifacts, so check committed output before running them.
 `npm run test:package` builds the archive, extracts it into a fresh temporary
 directory and runs the synthetic helper journey from the relocated files.
 Optional developer-only `npm run test:parity` compares synthetic lifecycle and

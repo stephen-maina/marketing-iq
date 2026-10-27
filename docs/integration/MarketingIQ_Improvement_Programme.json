@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-27",
+  "purpose": "Implement the reviewed marketing and plugin improvements without expanding permissions or fabricating evidence.",
+  "startingCommit": "7ce15c27b6c2ca2dfcb5a7fb6f0f0269eef27dfd",
+  "startingState": "Includes uncommitted source-intake and marketer-review improvements; preserve them.",
+  "baseline": {
+    "commands": ["npm test", "npm run test:plugin", "npm run test:package"],
+    "results": "108, 4 and 1 tests passed respectively; zero failures or skips.",
+    "scope": "Local code and packaging, not live connector or marketer acceptance."
+  },
+  "ledger": [
+    {"id":"T1","type":"task","requirement":"Implement improvements in priority order","predicate":"Each task has artifacts and an observed outcome or an explicitly owned external blocker","owner":"maintainer"},
+    {"id":"C1","type":"constraint","requirement":"Preserve existing Launch/Field consumer contracts","predicate":"Canonical11 fields, enums and role shapes unchanged; planning has a separate explicit contract","owner":"maintainer"},
+    {"id":"C2","type":"constraint","requirement":"Use real inputs for behavior observations","predicate":"No fabricated sources, preferences, customer results or human approvals counted as success","owner":"evaluator"},
+    {"id":"R1","type":"required","requirement":"Keep reusable lessons in shipped assets","predicate":"Context, research, editing, planning, measurement and extension instructions are reachable and packaged","owner":"maintainer"},
+    {"id":"F1","type":"forbidden","requirement":"No permission expansion or denial bypass","predicate":"Existing tool allow-lists unchanged; denied actor/path stops; no alternative actor counted as resolution","owner":"host administrator"},
+    {"id":"F2","type":"forbidden","requirement":"No global preference save or automatic third-party installation","predicate":"No native memory mutation, extension installation or unrequested publication","owner":"maintainer"}
+  ],
+  "tasks": [
+    {"id":"improve-readiness","priority":0,"status":"done","dependsOn":[],"acceptance":"Read-only installed-origin diagnostics plus an actual clean-consumer observation; unavailable host capabilities remain explicitly unknown/blocked.","outcome":"Six focused installation/package tests passed. One clean-consumer directory-loaded run on 2026-10-27 stopped at the exact generated shared SKILL.md with Sandbox policy denial. CLI exit 0 was not acceptance. No source retrieval or permission change; host acceptance remains blocked."},
+    {"id":"improve-disclosure","priority":1,"status":"done","dependsOn":["improve-readiness"],"acceptance":"Shared entrypoint under 500 lines; extracted procedures retained; references loaded only on their stated triggers; canonical contract unchanged.","outcome":"Five existing procedure blocks moved verbatim with immediate equality checks. Source entrypoint reduced from 1004 to 307 lines before further additions. Seven installation/package tests pass; reference resolution is checked. Setup/intake is an explicit non-assessment branch. Actual selected-host behavior blocked by L01."},
+    {"id":"improve-marketing","priority":1,"status":"done","dependsOn":["improve-disclosure"],"acceptance":"Versioned opt-in project brief, research extraction, narrow-edit/voice preservation and claim-unlock procedures composed by existing workflows.","outcome":"Optional context/craft references and blank versioned brief/feedback templates authored and composed. No user-wide preference save. Runtime acceptance B02-B06/B08 remains blocked by selected-host denial; authored guidance is not behavioral proof."},
+    {"id":"improve-planning","priority":1,"status":"done","dependsOn":["improve-marketing"],"acceptance":"Explicit optional campaign/event and measurement workflow, real-feedback capture template, no invented results or automatic sending.","outcome":"Separate six-section planning-only Markdown skill, router/client profile composition, installed-path mapping and measurement/experiment guidance authored. No third canonical useCase. Package/reference checks pass; live case B07 remains blocked."},
+    {"id":"improve-release","priority":1,"status":"done","dependsOn":["improve-planning"],"acceptance":"Version consistency, changelog, CI, deterministic generated drift checks and tag-gated release packaging.","outcome":"Local unreleased version 0.2.0; centralized build metadata, deterministic LF output, non-mutating checks and pinned Windows/Linux CI/tag-gated draft release authored. Eleven focused installation/package tests and check:generated pass. Remote CI/release not executed. Check-mode regression was added after implementation; no fabricated pre-change red is claimed."},
+    {"id":"improve-extensions","priority":2,"status":"done","dependsOn":["improve-release"],"acceptance":"Pinned optional catalogue, compatibility/installation contract and full-tree dependency checks without automatic installation.","outcome":"Five catalogue entries verified against the recursive Git tree at upstream 17772c7a80b7b8c7a47af30f648374cd8bd8adc5, including entrypoint Git blobs and complete per-skill file sets. Guidance accounts for optional context, cross-skill and mutable external tool links. Nothing installed or invoked; runtime compatibility unverified."},
+    {"id":"improve-acceptance","priority":2,"status":"blocked","dependsOn":["improve-extensions"],"acceptance":"Relevant local checks, actual bounded behavior observations, complete-diff review, durable dispositions and honest external blockers.","outcome":"Local code/package checks and independent complete-diff review completed with no significant issues. Post-change selected-host behavioral acceptance B02-B09 remains blocked by host-access and packet-transport; memory/brief persistence and actual human utility are not proven. No alternate actor, synthetic campaign evidence or permission change used to close those gaps."}
+  ],
+  "invariants": [
+    {"id":"MIQ-I01","rule":"Filesystem identity is not host discovery, tool exposure or authentication.","verification":"Installation helper tests and actual host protocol."},
+    {"id":"MIQ-I02","rule":"Project brief context, native user preferences, admitted evidence and accepted direction are distinct.","verification":"Marketing workflow review and real-input behavior protocol."},
+    {"id":"MIQ-I03","rule":"Three source documents are not three independent research participants.","verification":"Research guidance and semantic review."},
+    {"id":"MIQ-I04","rule":"Automated package checks do not establish live marketing usefulness.","verification":"Release documentation and explicit human-feedback acceptance."}
+  ],
+  "reviewLoop": {
+    "beforeApproval": ["Read authority and carried risks", "Record baseline", "Implement with regression-first checks", "Review complete diff", "Adjudicate findings", "Fix and re-review changed boundaries", "Update this programme and learning log"],
+    "afterMerge": ["Record actual integration commit and review anchor if publication is authorized", "Update completion evidence; never invent a merge or release"]
+  },
+  "localValidation": {
+    "date": "2026-10-27",
+    "runtime": "Node v22.18.0 on Windows",
+    "commands": [
+      {"command":"npm test","result":"108 passed; zero failures/skips"},
+      {"command":"npm run test:plugin","result":"12 passed; zero failures/skips"},
+      {"command":"npm run test:package","result":"1 passed; zero failures/skips"},
+      {"command":"npm run check:generated","result":"passed; runtime/plugin match canonical source"},
+      {"command":"git diff --check","result":"passed"}
+    ],
+    "priorFailure": "First full rerun: 107/108 passed. CD-04 still read the old monolithic shared file. Its original assertions now apply to the explicitly referenced connector/preflight composition, with added checks that the entrypoint links both. No rule or assertion was removed.",
+    "scope": "Local deterministic code/package checks. Existing synthetic helper fixtures are not live marketer evidence. No selected-host post-denial rerun, source retrieval, human acceptance or remote CI/release.",
+    "rawLog": "Ephemeral session artifact improvement-validation-860e044887a441b7b682ff7c39b31dac.log; durable commands/results retained here.",
+    "workingTreeIdentity": {
+      "baseHead":"7ce15c27b6c2ca2dfcb5a7fb6f0f0269eef27dfd",
+      "changedNonDocumentationFiles":68,
+      "sha256ManifestDigest":"9dd26cdbad26597552b174be984db669586dfa9fa04c138cd2825e0b4189823d",
+      "method":"Unique sorted git ls-files --modified plus --others --exclude-standard paths, excluding docs/ and CHANGELOG.md; each UTF-8 LF line is lowercase SHA256, two spaces, Git path. Digest binds this uncommitted source state, not publisher/runner authenticity."
+    }
+  },
+  "independentReview": {
+    "state":"completed",
+    "scope":"Complete working-tree diff including untracked canonical/generated assets, tests and documentation against startingCommit.",
+    "requestedModel":"No user model override; runtime defaults.",
+    "deviation":"Preferred se-system-architecture-reviewer could not start because its configured GPT-5 model was unavailable. No review ran in that attempt; one standard read-only code-review agent was started instead, without changing model settings or permissions.",
+    "actualModel":"Not exposed in the task receipt.",
+    "result":"No significant issues found in the reviewed changes.",
+    "reviewAnchor":"Local code-review agent b728d26e-cdf6-429e-a83e-bbf55067caf7, turns 0-1; uncommitted working-tree identity recorded under localValidation. No platform PR review or new code commit exists.",
+    "coverage":[
+      "Verified base HEAD; enumerated 33 changed tracked and 42 untracked files.",
+      "Read canonical routing/profiles, shared/Launch/Field/planning, extracted procedures, preference/context/craft/feedback/extension inputs; compared old monolithic contract with expanded new references.",
+      "Reviewed CLI version, assets, build/check and plugin/package generators, inspector, metadata/tests, CI/release and changed documentation. Generated derivatives covered through canonical inputs and generator, not exhaustive duplicate reads.",
+      "Included CD-04 composition correction and ran its four structural tests; independently compiled TypeScript in memory with no diagnostics and matched all seven emitted runtime files.",
+      "Checked public pinned action manifests and all five optional-extension inventories and entrypoint blobs against the pinned upstream tree."
+    ],
+    "limitations":"No full regression, remote CI/release, installed-host journey, enterprise retrieval, persistence/recall or human acceptance run by reviewer. No denied-path retry or optional-extension execution. A transient preflight test directory was not read and was absent from final inventory. These limits do not waive the separately owned live acceptance gates.",
+    "postReviewChanges":"Documentation/programme dispositions only; no runtime or test changes.",
+    "findings":[]
+  },
+  "externalBlockers": [
+    {"id":"host-access","owner":"CLI administrator","state":"blocked","nextAction":"Resolve Sandbox policy denial observed 2026-10-27 at C:\\work\\MarketingIQ\\artifacts\\marketing-iq-repository\\plugins\\marketing-iq\\skills\\marketing-iq\\SKILL.md through normal supported setup. Do not rerun this denied actor/path or relocate it as a workaround. Then execute MarketingIQ_Host_Acceptance.md in the selected actor."},
+    {"id":"packet-transport","owner":"CLI administrator and selected-profile owner","state":"blocked","nextAction":"After instruction accessibility is resolved, establish an already permitted native data-only staging/input boundary in the actual selected host. Do not embed source/draft bodies in shell commands or change permissions to manufacture a passing run. Revalidate connector exposure and exact-pair review/export separately. Historical gap-transport, gap-installed-demo and gap-live remain open."},
+    {"id":"human-utility","owner":"actual marketer","state":"not-assessed","nextAction":"Review a real delivered result and supply actual editing/decision/outcome feedback."},
+    {"id":"native-memory","owner":"host administrator and user","state":"blocked","nextAction":"Repository-specific persistence requires a supported eligible scope; user declined user-wide preference storage."}
+  ],
+  "decisions": [
+    "Keep the portable Node runtime and existing fixed tool profiles.",
+    "Extract existing procedures rather than rewriting evidence policy from scratch.",
+    "Use an optional project-owned brief, not a fallback memory store.",
+    "Keep campaign planning separate from canonical Launch/Field schemas.",
+    "Offer reviewed external capabilities; do not vendor or install the full third-party collection.",
+    "Reconciled operational planning/release status to this durable programme before continuation.",
+    "Keep generated checks non-mutating; use isolated copies of real source assets to exercise drift without touching the user's working copies."
+  ],
+  "learnings": [
+    {"id":"L01","task":"improve-readiness","invariant":"MIQ-I01","evidence":"installation.test.mjs: three pre-implementation failures; six combined focused tests passed after implementation. Clean-consumer CLI returned exit 0 but its answer reported the instruction denial.","downstream":"improve-acceptance: do not equate process exit, generated identity or canonical-source review with selected-installed-host success.","reviewAnchor":"independentReview","rawEvidence":"Ephemeral session files improvements-20261027/setup-before.stdout.jsonl and setup-before.stderr.txt; durable nonsecret outcome and reproduction protocol retained here and in MarketingIQ_Host_Acceptance.md."},
+    {"id":"L02","task":"improve-release","invariant":"MIQ-I01","evidence":"Test malformed metadata is invalid rather than an unavailable instruction failed before correction: actual MIQ_INSTRUCTION_UNAVAILABLE versus expected MIQ_INSTALLATION_INVALID. The inspector now separates read and parse diagnostics. Eleven focused tests passed afterward, including malformed, missing, changed and redirected metadata.","downstream":"improve-acceptance: preserve exact error classification; administrators must distinguish access failure from malformed package metadata.","reviewAnchor":"independentReview"},
+    {"id":"L03","task":"improve-disclosure","invariant":"MIQ-I04","evidence":"Extraction equality and package-reference checks cover preservation/distribution, not actual conditional loading. B02-B09 are authored real-input acceptance obligations; the selected actor remains denied.","downstream":"improve-acceptance: never give evaluator-only cases/oracles to the marketing actor or promote package success into model usefulness.","reviewAnchor":"independentReview"},
+    {"id":"L04","task":"improve-extensions","invariant":"MIQ-I02","evidence":"Upstream actual paths are analytics and ab-testing, not the initially guessed names. Pinned skill trees retain their reference/eval assets; analytics links to mutable main-branch tool guides outside that snapshot.","downstream":"improve-acceptance: extension acquisition/install remains opt-in, verify complete assets and dependencies, and keep external context/heuristics distinct from evidence.","reviewAnchor":"independentReview"},
+    {"id":"L05","task":"improve-acceptance","invariant":"MIQ-I04","evidence":"CD-04 failed after progressive extraction because the structural test read only the entrypoint. The same assertions now cover the entrypoint and both named references, with explicit reference-link assertions. Full local suites passed afterward; the check remains explicitly structural, not a model-routing evaluation.","downstream":"Future disclosure edits must update structural composition tests while retaining assertions and separately exercising actual conditional loading after host remediation.","reviewAnchor":"independentReview"}
+  ],
+  "continuation": "Implementation priorities 0-2 and independent engineering review are complete locally; source remains unreleased/uncommitted. Do not retry the denied actor/path until the CLI administrator supplies supported remediation. Then execute the frozen actual-input acceptance protocol in the intended selected host, retaining the historical failures and separate packet/memory/human gates. No commit, push, tag, release, third-party installation or global preference save was performed. Never infer live success from package tests."
+}

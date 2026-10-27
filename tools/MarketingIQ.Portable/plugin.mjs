@@ -1,9 +1,12 @@
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runtimeAssets } from "./assets.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const check = process.argv[2] === "--check";
+if (process.argv.length !== (check ? 3 : 2)) throw new Error("Expected no arguments or --check.");
 const output = join(root, "plugins", "marketing-iq");
 const { version } = JSON.parse(await fs.readFile(join(root, "package.json"), "utf8"));
 const installedPaths = `
@@ -17,6 +20,7 @@ or assume that the consumer has a .github folder.
 skill. When a workflow skill is loaded first, its sibling marketing-iq directory
 is that base. \`<MIQ_LAUNCH>\` and \`<MIQ_FIELD>\` mean its sibling
 marketing-iq-launch-decision and marketing-iq-field-activation directories.
+\`<MIQ_PLANNING>\` means sibling marketing-iq-campaign-planning.
 Resolve these notation placeholders before reading files or executing commands;
 they are not environment variables or literal shell arguments. Quote absolute
 paths and use the current OS path separator. Bare references, scripts and
@@ -41,6 +45,7 @@ for (const source of runtimeAssets) {
         for (const [name, notation] of [
             ["marketing-iq-launch-decision", "<MIQ_LAUNCH>"],
             ["marketing-iq-field-activation", "<MIQ_FIELD>"],
+            ["marketing-iq-campaign-planning", "<MIQ_PLANNING>"],
             ["marketing-iq", "<MIQ_SHARED>"]
         ]) text = text.replaceAll(`.github\\skills\\${name}\\`, `${notation}\\`);
         text = text.replace("workspace-local entrypoint", "plugin entrypoint")
@@ -58,7 +63,8 @@ for (const source of runtimeAssets) {
 }
 files.set("skills/marketing-iq/references/sharepoint-source-routes.json",
     Buffer.from(JSON.stringify({ schemaVersion: 1, revision: "portable-v1", routes: [] }, null, 2) + "\n"));
-files.set("README.md", await fs.readFile(join(root, "docs", "integration", "MarketingIQ_Plugin.md")));
+files.set("README.md", Buffer.from((await fs.readFile(
+    join(root, "docs", "integration", "MarketingIQ_Plugin.md"), "utf8")).replaceAll("\r\n", "\n")));
 files.set("plugin.json", Buffer.from(JSON.stringify({
     $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
     name: "marketing-iq", version,
@@ -66,10 +72,16 @@ files.set("plugin.json", Buffer.from(JSON.stringify({
     repository: "https://github.com/stephen-maina/marketing-iq",
     keywords: ["marketing", "launch-decision", "field-activation", "evidence"]
 }, null, 2) + "\n"));
+files.set("installation.json", Buffer.from(JSON.stringify({
+    schemaVersion: 1, version,
+    entrypoints: [...files].filter(([name]) => name.endsWith("/SKILL.md") ||
+        name === "com.github.copilot/agents/marketing-iq.agent.md")
+        .map(([path, bytes]) => ({ path, sha256: createHash("sha256").update(bytes).digest("hex") }))
+}, null, 2) + "\n"));
 
 // Update only known generated files; never remove or traverse user-added content.
 for (const directory of [join(root, "plugins"), output]) {
-    await fs.mkdir(directory, { recursive: true });
+    if (!check) await fs.mkdir(directory, { recursive: true });
     if (!(await fs.lstat(directory)).isDirectory()) throw new Error(`Not a regular directory: ${directory}`);
 }
 for (const entry of await fs.readdir(output, { recursive: true, withFileTypes: true })) {
@@ -82,7 +94,11 @@ for (const entry of await fs.readdir(output, { recursive: true, withFileTypes: t
 }
 for (const [name, bytes] of files) {
     const target = join(output, ...name.split("/"));
-    await fs.mkdir(dirname(target), { recursive: true });
-    await fs.writeFile(target, bytes);
+    if (check) {
+        if (!(await fs.readFile(target)).equals(bytes)) throw new Error(`Generated plugin drift: ${name}`);
+    } else {
+        await fs.mkdir(dirname(target), { recursive: true });
+        await fs.writeFile(target, bytes);
+    }
 }
-console.log(JSON.stringify({ plugin: output, version, files: [...files.keys()] }));
+console.log(JSON.stringify({ plugin: output, version, mode: check ? "check" : "build", files: [...files.keys()] }));

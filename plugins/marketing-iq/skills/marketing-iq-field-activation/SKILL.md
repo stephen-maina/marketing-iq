@@ -25,6 +25,7 @@ or assume that the consumer has a .github folder.
 skill. When a workflow skill is loaded first, its sibling marketing-iq directory
 is that base. `<MIQ_LAUNCH>` and `<MIQ_FIELD>` mean its sibling
 marketing-iq-launch-decision and marketing-iq-field-activation directories.
+`<MIQ_PLANNING>` means sibling marketing-iq-campaign-planning.
 Resolve these notation placeholders before reading files or executing commands;
 they are not environment variables or literal shell arguments. Quote absolute
 paths and use the current OS path separator. Bare references, scripts and
@@ -54,6 +55,9 @@ Read shared `references\decision-tools.md` and use its existing local CLI.
 Do not load the Launch workflow, programme handoff, old private briefs/drafts
 or a previous conversation to recover direction. Workspace metadata is not
 current evidence, authentication or approval.
+Use shared `references\marketing-context.md` only for a supplied/project brief
+or feedback request, and `references\marketing-craft.md` for customer language,
+voice, narrow edits or unsupported requested claims.
 
 # Pre-flight
 
@@ -96,6 +100,9 @@ Trigger: a Field brief or a clarification to the current activation activity.
    audience/activity details. Use placeholders only for unknown relevant
    logistics, such as `[date]`, `[time]`, `[registration link]` or `[sender]`.
    A scheduling invitation need not imply an already-booked event.
+   Apply supplied tone, language, brand terminology and channel/length limits
+   consistently across the kit. Do not invent a brand policy or ask for one
+   when it would not materially affect this internal draft.
    If direction asks attendees to supply a preparation input, carry that request
    and its input restrictions into the CTA; generic registration or availability
    alone does not fulfill it. If no preparation input is specified, a relevant
@@ -117,6 +124,9 @@ Trigger: a Field brief or a clarification to the current activation activity.
    required human review/use permissions. Suggest a relevant measurement
    (for example, interest in a qualified follow-up), labelled as a proposal
    with no invented numerical target, historical result or guaranteed outcome.
+   State how an owner could manually observe that signal. Actual marketer edits
+   or outcome feedback, when supplied, remain attributed observations rather
+   than proof of causation; no automatic analytics collection is implied.
 6. Apply shared uncertainty/reassessment guidance. If audience, activity, timing
    or direction changes, revise every affected section, CTA and placeholder;
    remove contradicted old framing. Keep unrelated supported facts unless the
@@ -127,6 +137,9 @@ Trigger: a Field brief or a clarification to the current activation activity.
    New tasks and explicit returns to earlier tasks have separate scope/ledger
    handling under the shared contract. Same folder or same four keys alone
    does not approve a different objective.
+   For a narrow wording request, preserve unaffected text exactly and change
+   only the requested part plus genuinely dependent corrections. Explain any
+   necessary factual correction; submit the whole revised pair for fresh review.
 
 EXCLUDE: direction inherited from unaccepted chat, treating unknown history as no history, factual
 claims from metadata, invented approvals, automatic distribution, internal

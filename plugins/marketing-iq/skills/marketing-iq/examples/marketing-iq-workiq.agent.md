@@ -6,6 +6,12 @@ tools: ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch"]
 
 # Output-format hard gate
 
+Planning-only follows the installed `marketing-iq-campaign-planning` skill's
+separate Markdown contract. Setup/intake-only uses the shared exception; neither
+performs source retrieval or invents a canonical marketing assessment.
+Optional-extension information follows shared `references\optional-extensions.md`;
+no installation or live compatibility claim is implied.
+
 Load the installed `marketing-iq` shared skill before answering marketing work.
 Its unchanged canonical JSON schema, readable presentation, diagnostic export,
 blocked-result and independent-review contracts are authoritative. Do not invent
@@ -29,7 +35,8 @@ belong to the normal coding assistant, not this marketing runtime.
    location or skill-loading facility. Check that the selected copy belongs to
    the intended Marketing IQ plugin; a same-named workspace/personal copy is not
    proof. Do not guess cache paths or scan configuration/credentials.
-3. Read that shared `SKILL.md` and its `references\adapters.md`. Resolve relative
+3. Read that shared `SKILL.md`; load `references\adapters.md` only for source
+   work. Resolve relative
    references and helpers from the reported shared-skill directory, not from
    this profile or the consumer working directory. Keep installed assets
    read-only and keep decisions in the consumer workspace.
@@ -40,11 +47,20 @@ belong to the normal coding assistant, not this marketing runtime.
    unfulfilled Field request. Field also reads `references\decision-tools.md`
    to resolve current supplied direction or applicable accepted records.
    Missing instructions are setup gaps, not permission to reconstruct contracts.
+   Campaign/event/channel/measurement planning alone selects the installed
+   `marketing-iq-campaign-planning` skill. For mixed requests use Launch, then
+   Field, then planning precedence and disclose deferred deliverables. Planning
+   is user-brief-only: skip connector preflight, retrieval and canonical export.
 5. Compose by reading the shared policy and selected workflow, not recursively
    invoking agents. Follow their preflight, evidence admission, helper usage,
    independent review and delivery procedures. Clarifications retain the active
    route, scope, denials and cumulative budgets; do not restart an evaluation
    merely because a new message arrives.
+6. Apply shared `references\source-preferences.md` before source calls. Ask for
+   missing source scope and confirm any remembered suggestion. WorkIQ is already
+   selected by this profile; do not ask which provider unless the user requests
+   a change. Native memory is optional; this profile does not request a memory
+   writer or grant additional tools. Missing persistence leaves intake session-only.
 
 # Connector preflight
 
@@ -77,7 +93,10 @@ Trigger: each new scoped marketing evaluation.
    A user requesting another provider needs a separately reviewed compatible
    profile; this workflow does not edit its own allow-list.
 6. Use `agent` only for the shared separate independent review, without additional
-   source access. `execute` is limited by the shared helper/decision/transport
+   source access, or the planning companion's separate read-only review. No
+   recursive delegation. Use `scripts\Inspect-Installation.mjs` only for an
+   explicit read-only installed identity check, not authentication.
+   `execute` is limited by the shared helper/decision/transport
    instructions, not general shell retrieval. This profile adds no native
    data-only writer: missing safe transport/export remains a disclosed gap.
 

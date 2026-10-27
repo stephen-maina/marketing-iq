@@ -1,0 +1,52 @@
+name: Prepare versioned release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.18.0'
+          cache: npm
+      - run: node -e "const p=require('./package.json'); if(process.env.GITHUB_REF_NAME !== 'v'+p.version) process.exit(1)"
+      - run: npm ci --ignore-scripts
+      - run: npm run check:generated
+      - run: npm test
+      - run: npm run test:plugin
+      - run: npm run test:package
+      - name: Bundle native plugin
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tar -czf "artifacts/marketing-iq-plugin-${version}.tgz" -C plugins marketing-iq
+          cd artifacts
+          sha256sum "marketing-iq-plugin-${version}.tgz" > "marketing-iq-plugin-${version}.tgz.sha256"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-packages
+          path: |
+            artifacts/*.tgz
+            artifacts/*.tgz.sha256
+          if-no-files-found: error
+  draft:
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-packages
+          path: release-packages
+      - name: Create reviewable prerelease draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release-packages/* --verify-tag --draft --prerelease --title "$GITHUB_REF_NAME" --notes "Internal-review plugin. See CHANGELOG.md and the installed-host acceptance limitations before publishing. Package checks do not establish live connector or marketer acceptance."

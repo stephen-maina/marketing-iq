@@ -10,6 +10,94 @@ import { runtimeAssets } from "../../tools/MarketingIQ.Portable/assets.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const plugin = join(root, "plugins", "marketing-iq");
 
+test("runtime package, CLI and plugin report the same release version", async () => {
+    const { version } = JSON.parse(await fs.readFile(join(root, "package.json")));
+    const portable = join(plugin, "skills", "marketing-iq", "scripts", "portable");
+    assert.equal(JSON.parse(await fs.readFile(join(portable, "package.json"))).version, version);
+    const result = spawnSync(process.execPath, [join(portable, "cli.js"), "--version"],
+        { encoding: "utf8", timeout: 20000 });
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout.trim(), version);
+});
+
+test("check mode detects drift without repairing or deleting consumer content", async t => {
+    const temporary = await fs.mkdtemp(join(tmpdir(), "miq-generator-check-"));
+    t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+    const inputs = [...runtimeAssets, "package.json", "docs/integration/MarketingIQ_Plugin.md",
+        "tools/MarketingIQ.Portable/plugin.mjs", "tools/MarketingIQ.Portable/assets.mjs"];
+    for (const name of inputs) {
+        const target = join(temporary, name);
+        await fs.mkdir(dirname(target), { recursive: true });
+        await fs.copyFile(join(root, name), target);
+    }
+    const invoke = args => spawnSync(process.execPath,
+        [join(temporary, "tools", "MarketingIQ.Portable", "plugin.mjs"), ...args],
+        { encoding: "utf8", timeout: 20000 });
+    assert.equal(invoke([]).status, 0);
+    assert.equal(invoke(["--check"]).status, 0);
+    const generated = join(temporary, "plugins", "marketing-iq");
+    const readme = join(generated, "README.md");
+    await fs.writeFile(readme, "consumer change");
+    assert.equal(invoke(["--check"]).status, 1);
+    assert.equal(await fs.readFile(readme, "utf8"), "consumer change");
+    assert.equal(invoke([]).status, 0);
+    await fs.unlink(readme);
+    assert.equal(invoke(["--check"]).status, 1);
+    assert.equal(await fs.stat(readme).then(() => true, () => false), false);
+    assert.equal(invoke([]).status, 0);
+    const extra = join(generated, "client-note.txt");
+    await fs.writeFile(extra, "preserve me");
+    assert.equal(invoke(["--check"]).status, 1);
+    assert.equal(invoke([]).status, 1);
+    assert.equal(await fs.readFile(extra, "utf8"), "preserve me");
+});
+
+test("runtime check rejects changed, missing and unknown files without mutation", async t => {
+    const temporary = await fs.mkdtemp(join(tmpdir(), "miq-runtime-check-"));
+    t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+    for (const name of [...runtimeAssets, "package.json", "docs/integration/MarketingIQ_Plugin.md"]) {
+        const target = join(temporary, name);
+        await fs.mkdir(dirname(target), { recursive: true });
+        await fs.copyFile(join(root, name), target);
+    }
+    await fs.cp(join(root, "tools", "MarketingIQ.Portable"),
+        join(temporary, "tools", "MarketingIQ.Portable"), { recursive: true });
+    await fs.symlink(join(root, "node_modules"), join(temporary, "node_modules"), "junction");
+    const run = (name, args = []) => spawnSync(process.execPath,
+        [join(temporary, "tools", "MarketingIQ.Portable", name), ...args],
+        { encoding: "utf8", timeout: 60000 });
+    assert.equal(run("plugin.mjs").status, 0);
+    const valid = run("build.mjs", ["--check"]);
+    assert.equal(valid.status, 0, valid.stdout + valid.stderr);
+    const runtime = join(temporary, ".github", "skills", "marketing-iq", "scripts", "portable");
+    const cli = join(runtime, "cli.js");
+    const original = await fs.readFile(cli);
+    await fs.appendFile(cli, "\n// drift canary\n");
+    assert.equal(run("build.mjs", ["--check"]).status, 1);
+    assert.match(await fs.readFile(cli, "utf8"), /drift canary/);
+    await fs.unlink(cli);
+    assert.equal(run("build.mjs", ["--check"]).status, 1);
+    assert.equal(await fs.stat(cli).then(() => true, () => false), false);
+    await fs.writeFile(cli, original);
+    const unknown = join(runtime, "consumer-note.txt");
+    await fs.writeFile(unknown, "preserve me");
+    assert.equal(run("build.mjs", ["--check"]).status, 1);
+    assert.equal(await fs.readFile(unknown, "utf8"), "preserve me");
+});
+
+test("progressive entrypoint stays bounded and every shipped reference resolves", async () => {
+    const shared = join(plugin, "skills", "marketing-iq");
+    const entry = await fs.readFile(join(shared, "SKILL.md"), "utf8");
+    assert.ok(entry.split("\n").length < 500, "shared entrypoint should not inline the whole workflow");
+    for (const file of await fs.readdir(plugin, { recursive: true, withFileTypes: true })) {
+        if (!file.isFile() || !file.name.endsWith(".md") || file.name === "README.md") continue;
+        const text = await fs.readFile(join(file.parentPath, file.name), "utf8");
+        for (const match of text.matchAll(/references\\([a-z][a-z-]+\.md)/g)) {
+            assert.ok((await fs.stat(join(shared, "references", match[1]))).isFile(), match[0]);
+        }
+    }
+});
+
 test("native plugin ships only runtime assets and installation-relative instructions", async () => {
     const manifest = JSON.parse(await fs.readFile(join(plugin, "plugin.json"), "utf8"));
     assert.equal(manifest.$schema, "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json");
@@ -20,7 +108,7 @@ test("native plugin ships only runtime assets and installation-relative instruct
     assert.match(readme, /--agent marketing-iq:marketing-iq/);
     assert.doesNotMatch(readme, /--agent marketing-iq(?:\s|$)/);
     const files = await fs.readdir(plugin, { recursive: true, withFileTypes: true });
-    assert.equal(files.filter(file => file.isFile()).length, runtimeAssets.length + 3);
+    assert.equal(files.filter(file => file.isFile()).length, runtimeAssets.length + 4);
     for (const file of files) {
         assert.equal(file.isSymbolicLink(), false);
         if (!file.isFile()) continue;
@@ -41,6 +129,13 @@ test("native plugin ships only runtime assets and installation-relative instruct
     const agent = await fs.readFile(join(plugin, "com.github.copilot", "agents", "marketing-iq.agent.md"), "utf8");
     const canonical = await fs.readFile(join(root, ".github", "agents", "marketing-iq.agent.md"), "utf8");
     assert.equal(agent.split("\n")[3].trimEnd(), canonical.split("\n")[3].trimEnd());
+    const shared = join(plugin, "skills", "marketing-iq");
+    const intake = await fs.readFile(join(shared, "references", "source-preferences.md"), "utf8");
+    assert.equal(intake, (await fs.readFile(join(root, ".github", "skills", "marketing-iq",
+        "references", "source-preferences.md"), "utf8")).replaceAll("\r\n", "\n"));
+    for (const entry of ["SKILL.md", join("examples", "marketing-iq-workiq.agent.md")]) {
+        assert.match(await fs.readFile(join(shared, entry), "utf8"), /references\\source-preferences\.md/);
+    }
     const registry = JSON.parse(await fs.readFile(join(plugin, "skills", "marketing-iq", "references", "sharepoint-source-routes.json")));
     assert.deepEqual(registry.routes, []);
 });

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "marketing-iq",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Evidence-led Launch decisions and Field activation using your existing host connector.",
   "repository": "https://github.com/stephen-maina/marketing-iq",
   "keywords": [

@@ -1,7 +1,8 @@
 # Marketing IQ workspace routing
 
 For ordinary marketing requests about launch readiness, audience/proposition
-decisions, invitations, talk points or follow-ups, read
+decisions, invitations, talk points, follow-ups or campaign/event/measurement
+planning, read
 `.github\agents\marketing-iq.agent.md` and follow its routing/composition
 instructions. Users need not specify skills or repeat the evidence safeguards.
 For ordinary workspace routing, execute that composed workflow in the current

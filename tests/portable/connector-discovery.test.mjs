@@ -7,7 +7,11 @@ import { root } from "./fixtures.mjs";
 
 const agent = await fs.readFile(join(root, ".github", "agents", "marketing-iq.agent.md"), "utf8");
 const adapters = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "references", "adapters.md"), "utf8");
-const shared = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "SKILL.md"), "utf8");
+const sharedEntry = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "SKILL.md"), "utf8");
+const shared = [sharedEntry, ...await Promise.all(
+    ["connector-workflow.md", "host-preflight.md"].map(name =>
+        fs.readFile(join(root, ".github", "skills", "marketing-iq", "references", name), "utf8"))
+)].join("\n");
 
 test("CD-01 instructions discover exposed compatible tools before choosing a provider", () => {
     assert.match(agent, /# Connector selection/);
@@ -38,6 +42,8 @@ test("CD-03 discovery preserves denial and the narrow explicit-agent tool profil
 });
 
 test("CD-04 shared selection and preflight agree with provider-neutral entrypoint routing", () => {
+    assert.match(sharedEntry, /references\\connector-workflow\.md/);
+    assert.match(sharedEntry, /references\\host-preflight\.md/);
     assert.ok(/actually exposed tool names and callable schemas/.test(shared), "inspect exposed names and schemas");
     assert.ok(/unique exposed compatible connector/.test(shared), "select only an unambiguous compatible alternative");
     assert.ok(/arbitrary explicit source scope/.test(shared), "retain arbitrary explicit source scope");

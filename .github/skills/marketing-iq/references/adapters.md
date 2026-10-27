@@ -8,6 +8,11 @@ of where a document is stored. Provider identity does not establish business aut
 
 ## Selection and installation
 
+First resolve source intake under `source-preferences.md`. A current explicit
+source/connector choice takes precedence; an available remembered choice must
+be offered for confirmation, not silently used. Missing optional native memory
+does not block session-only intake. The defaults below apply after that gate.
+
 Default preference: the host's already authenticated, actually exposed WorkIQ
 tools when compatible with the user's scope. Inspect actual callable tool names
 and schemas before selecting a provider; use permitted discovery only for

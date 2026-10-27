@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "version": "0.2.0",
+  "entrypoints": [
+    {
+      "path": "com.github.copilot/agents/marketing-iq.agent.md",
+      "sha256": "18faeba2211e125eff0107972c31ee57a2c3779efa9cbdd18c5bc6cc108a1179"
+    },
+    {
+      "path": "skills/marketing-iq/SKILL.md",
+      "sha256": "6c80d225f42361e0091ec244ea625e8bba5d5ecfca533ca177e70b9032201efb"
+    },
+    {
+      "path": "skills/marketing-iq-launch-decision/SKILL.md",
+      "sha256": "8cd0411afb7a127a1ff1966ee7d47ada5248a8008371fee1278b26d0ce4f2b11"
+    },
+    {
+      "path": "skills/marketing-iq-field-activation/SKILL.md",
+      "sha256": "50374c60606e466966e28c469f8a75abdd95aad05559cac6f26957c84ee9db04"
+    },
+    {
+      "path": "skills/marketing-iq-campaign-planning/SKILL.md",
+      "sha256": "296ba67222d031a0bca5229a66544513ab07bd009c554c59746e36d44d1ec5e4"
+    }
+  ]
+}

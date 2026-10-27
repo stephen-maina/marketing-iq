@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "state": "proposed",
+  "reviewedOn": null,
+  "productOrTopic": "",
+  "objective": "",
+  "audienceHypotheses": [],
+  "positioningHypothesis": "",
+  "voice": { "language": "", "tone": "", "preferredTerms": [], "avoidTerms": [] },
+  "constraints": [],
+  "desiredAction": "",
+  "sourceSuggestions": [],
+  "openQuestions": [],
+  "changeReason": ""
+}

@@ -5,16 +5,18 @@ import { executeDecision } from "./decisions.js";
 import { normalizeEvidence } from "./evidence.js";
 import { context, routes } from "./routes.js";
 import { MiqError, ioCode, readJsonFile, requireThat, stdin, strictJson } from "./json.js";
-const version = "0.1.0";
-const help = "Marketing IQ 0.1.0 (Node >=22.18.0)\n" +
-    "context --use-case launch-decision|field-activation\n" +
-    "routes --use-case <workflow> --product-key <label> --topic-key <label> --evidence-need <lane>\n" +
-    "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
-    "local-file --file <explicit-synthetic-envelope.json>\n" +
-    "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
-    "check | --version | --help\n";
 const command = process.argv[2];
 try {
+    const metadata = strictJson(await fs.readFile(new URL("./package.json", import.meta.url)));
+    const version = metadata.version;
+    requireThat(typeof version === "string" && /^\d+\.\d+\.\d+$/.test(version));
+    const help = `Marketing IQ ${version} (Node >=22.18.0)\n` +
+        "context --use-case launch-decision|field-activation\n" +
+        "routes --use-case <workflow> --product-key <label> --topic-key <label> --evidence-need <lane>\n" +
+        "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
+        "local-file --file <explicit-synthetic-envelope.json>\n" +
+        "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
+        "check | --version | --help\n";
     const [major, minor, patch] = process.versions.node.split(".").map(Number);
     requireThat(major > 22 || major === 22 && (minor > 18 || minor === 18 && patch >= 0), "NODE_VERSION_UNSUPPORTED");
     const args = new Map();

@@ -313,3 +313,200 @@ Final integrated validation passed 108 helper/review tests, three native
 plugin/marketplace tests and one relocated archive journey, with zero failures
 or skips. An independent read-only code review reported no significant defects.
 These results do not remove the live-retrieval and native-writer limits above.
+
+## October 27, 2026: live evidence and marketer-adviser observation
+
+This follow-up used actual WorkIQ excerpts within a user-approved SharePoint
+folder. No synthetic source demonstration was run for this follow-up. The
+scenario was prospectively written by the engineering coordinator, not obtained
+from an interviewed marketer: compare an evidence-to-invitation working session
+with a general AI-benefits overview for government service delivery leaders
+worldwide, explain attendee value and trade-offs, and leave direction unsaved.
+The source demo's different comparison, audience and duration did not replace
+that brief. Neither scenario nor expected outcome was changed after retrieval.
+
+### Implemented changes
+
+The shared instructions now select evidence by the question it must answer,
+distinguish complementary evidence roles, avoid counting equivalent document
+copies as independent support, and distinguish secondary quotations and
+positioning/demo plans from independently retrieved originals and current
+product verification. Launch and Field retain supplied objective, tone, language,
+brand and channel constraints without treating those preferences as evidence.
+Proposed success signals include a practical way for an owner to observe them
+manually, without invented results or a new analytics platform.
+
+The package now also includes the optional read-only
+`marketing-iq:marketing-iq-marketer` adviser and its review guide. It assesses
+marketing usefulness separately from evidence accuracy and human acceptance;
+it cannot retrieve, write, accept direction or send anything. Client-profile
+guidance records the observed selected-context limitations and human-operated
+setup boundary. No runtime source URL, connector credential, tool-permission
+expansion or automatic connector installation was added.
+
+### Measured journey
+
+| Step | Actual observation | Limit |
+|---|---|---|
+| Live retrieval | Two scoped SharePoint calls returned three admitted distinct works; all had original partial body excerpts. | No full-document coverage, native versions or locators; second call did not supply independent current product verification. |
+| Folder membership | Two metadata requests fetched three entities and established both DOCX items' shared parent; the PDF had an in-folder URL. | Conservatively charged four candidate-specific metadata operations; no further source retrieval after the declared budget. |
+| Evidence admission | Generated-plugin helper returned `ready` after the coordinator corrected its invalid `partial` enum to the actual `partial-body` contract. | Initial failed invocation is retained; admission is not truth or product-fit verification. |
+| Launch draft | Coordinator assembled the canonical/readable pair from the actual admitted excerpts, with four exact cited facts and a conditional offer comparison. | Host-orchestrated engineering scenario, not an autonomous selected-client-profile journey or a human-approved marketing brief. |
+| Packaged adviser | Actual CLI invocation with the complete guide and live packet assessed evidence accuracy and marketing usefulness. No material support mismatch was observed; one optional checklist-example enhancement was suggested. | AI advice, not a human marketer interview, measured editing benefit or approval. No tool execution event was observed in this supplied-input run. |
+| Mechanical preflight | Generated-plugin packet checker passed with no findings, including the corrected current pair. | Structure, joins and exact strings only. |
+| Independent semantic review | First invocation found generic safeguards misclassified as rejected user claims; they were moved to `proofGaps`. A fresh second invocation returned `pass` with no findings. | Two invocations in the same declared cycle, not an unbounded retry-until-pass loop. No human acceptance follows. |
+| Diagnostic export | Actual generated-plugin helper exported only the final eleven-field canonical candidate; decoded read-back exactly matched the retained candidate. | No raw evidence packet was exported. Diagnostic retention is not accepted direction or publication permission. |
+
+The provisional recommendation favored an introductory overview with a practical
+questions checklist, conditional on the owner wanting introductory discovery.
+It explained when invitation drafting would instead be preferable. It retained
+the narrower social-services evidence, unknown product fit, partial coverage,
+source sensitivity/use restrictions and internal-review-only status. The result
+remained `insufficient-evidence`, proposed and intentionally unsaved.
+
+### Preserve the failed adviser-input attempt
+
+The first adviser invocation combined piped packet input with `-p`. Its observed
+user message did not contain the packet; the adviser returned `not-assessed`.
+Exit zero was not treated as successful review. The corrected invocation supplied
+the complete guide and packet through stdin without `-p`:
+
+```powershell
+@(
+  'Review only the supplied live packet using the supplied guide.'
+  Get-Content -LiteralPath <review-guide-path> -Raw -Encoding utf8
+  Get-Content -LiteralPath <current-session-packet-path> -Raw -Encoding utf8
+) | copilot --plugin-dir <generated-plugin> `
+    --agent marketing-iq:marketing-iq-marketer --output-format json
+```
+
+Paths in this example are placeholders, not executable sample source data.
+The actual Windows invocation used UTF-8 native pipe encoding and captured
+stdout/stderr to separate session files. It supplied no model override, broad
+permission/trust flags or credential values. Both actual captures were retained;
+raw captures and private source identities/passages are not redistributed here.
+
+The engineering host then used the generated helpers with native data-only
+session staging:
+
+```text
+node <shared>\scripts\Test-ReviewPacket.mjs --packet-file <current-packet>
+node <shared>\scripts\Save-ResultArtifact.mjs --directory <session-artifacts> --packet-file <final-packet>
+```
+
+File-input support does not create a missing native writer or establish that a
+different selected agent can execute these operations.
+
+### Remaining gaps and measured scope
+
+A separate selected WorkIQ client-profile run loaded the shared skill, then
+had three required instruction reads denied and made zero WorkIQ calls.
+Its connector exposure, safe staging/preflight/export and installed-context live
+journey therefore remain blocked or unverified. Parent-host retrieval and the
+supplied-input adviser run do not close them. No plugin-owned path defect was
+established, and no permissions or configuration were changed to bypass them.
+The host/profile owner must resolve approved instruction accessibility and
+selected-context capabilities through normal supported setup before that
+end-to-end test can proceed.
+
+Human marketer feedback, accepted-direction save and fresh-session Field reuse
+were not exercised. A real marketer must still judge whether the proposal helps
+their decision and record necessary edits; AI utility assessment cannot supply
+that evidence. Current product-owner evidence and activity/review authority also
+remain missing for this example. The instruction changes are guidance, not a
+new deterministic evidence-quality algorithm or demonstrated reliability rate.
+
+The generated package contained 31 files. Plugin build, the existing focused
+static runtime-asset packaging check and whitespace validation passed. These
+are engineering checks, not substitutes for the live observations above.
+The source-free protocol/receipt and bounded actual captures remain in the
+author's session artifacts under `files\marketer-fleet-20261027`; source bodies
+and review packets are temporary processing inputs, not committed fixtures.
+
+## October 27, 2026: source intake and optional native preferences
+
+The shared source-intake contract now asks for a missing source/connector,
+requires current confirmation of eligible host-recalled suggestions, and honors
+a current explicit choice without redundant confirmation. Optional preference
+writes use only the selected host's native memory, supported scope and content
+rules. No memory service, fallback store or broader tool allow-list was added.
+The generated package contains 32 files.
+
+Two prospectively bounded fresh CLI processes selected the generated packaged
+agent, using the actual Marketing IQ readiness question and no fabricated source
+evidence or injected memories. Each process ran once, with source access and
+preference/direction writes explicitly excluded:
+
+| Case | Observed outcome |
+| --- | --- |
+| No current source/connector | Requested a source folder/document or connector; left readiness and offer comparison unassessed. |
+| Actual local repository path explicitly selected with WorkIQ | Retained both selections, reported WorkIQ retrieval not exposed and local-path compatibility unverified; did not substitute filesystem retrieval or another source. |
+
+The host recorded zero source retrieval and memory mutations in both runs.
+The missing-choice run also attempted the static helper, which could not execute
+without approval, and reported unavailable packet transport/export. Process exit
+code zero is not proof of a complete canonical diagnostic or marketing delivery.
+These observations establish bounded source-intake behavior, not a reliability
+rate or successful live retrieval.
+
+Both processes read the new reference from the same-named canonical workspace
+skill. Package checks verified that reference is also shipped unchanged, but
+these runs do not establish clean installed-only skill selection. Preserve this
+shadowing limit rather than calling them remote-installed demonstrations.
+
+The user explicitly declined user-wide preference storage. The implementation
+host exposed only user-scoped native writes, so no preference was saved. Native
+write, subsequent automatic recall, confirmation of an actually recalled source
+choice, and retrieval after confirmation remain untested. No private source
+address or fictional memory was saved to make those checks appear successful.
+
+Build, the focused runtime-asset/reference packaging check and whitespace checks
+passed. Raw CLI captures and source-free protocol/artifact/outcome receipts remain
+in session storage with the `memory-intake-` prefix; they are not source evidence,
+accepted direction or production fixtures.
+
+## October 27, 2026: prioritized improvements, unreleased 0.2.0
+
+The source now includes installed-entrypoint identity checks, progressive shared
+references, project brief/feedback templates, research and scoped-edit guidance,
+a separate campaign/measurement planning skill, versioned build/release checks
+and a five-item pinned optional-extension catalogue. Generated native assets
+contain 46 files. No third-party skill was installed and no release was published.
+
+One actual setup-only run from a clean consumer directory selected the
+directory-loaded agent and stopped at:
+
+`C:\work\MarketingIQ\artifacts\marketing-iq-repository\plugins\marketing-iq\skills\marketing-iq\SKILL.md`
+
+Classification: **Sandbox policy denial**. The process returned exit code zero;
+its answer was a denial, not acceptance. No source retrieval occurred. This
+actor/path was not retried or relocated to bypass the denial. The administrator
+owns supported remediation; local generator/helper checks do not resolve it.
+
+The observed malformed-metadata diagnostic regression first failed with
+`MIQ_INSTRUCTION_UNAVAILABLE` instead of `MIQ_INSTALLATION_INVALID`. The helper
+now distinguishes read failure from parse failure. Eleven focused local
+installation/package tests then passed, including non-mutating changed/missing/
+unknown generated-file cases; generated consistency also passed.
+These use real source/package copies with controlled file mutations and test
+only deterministic engineering behavior, not live marketing outcomes.
+
+`MarketingIQ_Behavior_Acceptance.json` freezes the evaluator-only obligations for
+actual intake, briefs, research, editing, claims, planning, feedback and optional
+extensions. Those post-change actor journeys remain blocked, not passed.
+The durable programme records the implementation, review and external owners.
+
+The subsequent full local run passed 108 portable/preflight tests, 12 native
+plugin tests and one workspace-archive journey; generated consistency and
+whitespace checks also passed. Its initial CD-04 failure was a structural test
+still reading only the former monolithic entrypoint. The unchanged assertions
+now inspect the named connector/preflight references as well, and verify that
+the entrypoint references them. This correction is not a live routing result.
+
+An independent read-only complete-diff review included the untracked canonical
+assets and corrected structural test, compared the expanded shared contract,
+and checked generated logic, public action pins and extension manifests. It
+found no significant issues. The preferred custom review profile could not
+start because its pinned model was unavailable; the standard code reviewer ran
+instead with no model/permission setting change. This engineering review is
+not installed-host accessibility, live marketing behavior or human acceptance.
