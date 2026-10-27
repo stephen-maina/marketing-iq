@@ -7,7 +7,7 @@
   "publicationFollowUp": {
     "authorization": "User requested commit and push, testing agents, and supported remediation guidance.",
     "implementationCommit": "eebec96",
-    "state": "Implementation eebec96 and testing-agent follow-up 75b68b3 published and verified on origin/main. Windows pipe failure diagnosed and corrected locally; hosted verification of the correction is pending. No tag or release requested.",
+    "state": "Implementation eebec96, testing-agent follow-up 75b68b3 and Windows pipe correction 36d9130 published and verified on origin/main. Correction passed local checks and all hosted Windows/Linux validation steps. No tag or release requested.",
     "remoteVerification": {
       "implementationCommit": "eebec9667eecc865029188038de38a8fa3b22bf0",
       "branch": "refs/heads/main",
@@ -26,7 +26,8 @@
       "followUpIdentity": "Resolve the commit containing the testing profiles through Git history; final push verification is a transport observation, not a self-referential prewritten commit hash."
     },
     "ciPipeCorrection": {
-      "state": "local-passed-awaiting-hosted",
+      "state": "verified-local-and-hosted",
+      "codeCommit": "36d9130c763afc481840ffe313688da487e50e83",
       "startingCommit": "929553f7a9d221872eb65f13eba8e9fc170054bf",
       "regression": "RR2-F01 in tests/hosted-preflight/review-packet.test.mjs",
       "red": "Setting console InputEncoding as well as OutputEncoding to code page 65001 reproduced the hosted failure locally: invalid JSON and the same EF BB BF prefix. The prior output-only cases did not cover the input encoding that .NET Framework uses when launching the child.",
@@ -38,12 +39,21 @@
         "npm run test:package: 1 passed",
         "npm run check:generated: passed"
       ],
+      "hostedValidation": {
+        "runId": 40500565113,
+        "headSha": "36d9130c763afc481840ffe313688da487e50e83",
+        "conclusion": "success",
+        "windowsJob": 122176894364,
+        "ubuntuJob": 122176894835,
+        "result": "Both jobs passed generated checks, npm test, plugin tests and archive tests. Only job/step metadata was retrieved; no raw logs. Normal push and ls-remote verified this exact commit on main.",
+        "scope": "Deterministic code, documented pipe and package validation. Does not establish selected-agent instruction access, native capture availability, actual connector use or human marketer utility."
+      },
       "mechanismSources": [
         "https://github.com/microsoft/referencesource/blob/main/System/services/monitoring/system/diagnosticts/Process.cs",
         "https://github.com/microsoft/referencesource/blob/main/mscorlib/system/io/streamwriter.cs"
       ],
       "review": "Direct complete-delta review against 75b68b317f409944118fa138fbc71487118e8807 covered reporter selection, canonical guidance and regression. Generated copy verified with check:generated. No significant issues found. This small delta was reviewed in the maintainer context, not represented as a new independent-agent review or live acceptance.",
-      "nextAction": "Publish correction normally, bind hosted run to its full commit SHA, inspect job/step outcomes and only fixed failure annotations if needed. Keep earlier failed runs historical. Do not retry the denied installed actor."
+      "nextAction": "CI correction is complete. This receipt follow-up changes documentation only. Keep earlier failed runs historical; do not retry the denied installed actor until supported administrator remediation is confirmed."
     },
     "stagedCheckCorrection": "The first staged diff check found trailing blank lines in five newly added extracted references, which an unstaged check had not covered. Removed only those blank lines and regenerated packaged copies; staged check and check:generated passed before the implementation commit.",
     "ledger": [
@@ -103,7 +113,7 @@
     {"id":"author-test-agents","priority":2,"status":"done","dependsOn":[],"acceptance":"Maintainer coordinator/evaluator preserve actor-oracle separation and remain outside shipped packages.","outcome":"Both profiles published in 75b68b3; calibration limitations and exclusion checks are recorded in publicationFollowUp."},
     {"id":"review-test-agents","priority":2,"status":"done","dependsOn":["author-test-agents"],"acceptance":"Focused package checks and independent review without claiming live execution.","outcome":"13 package tests passed and independent review found no significant issues; named-profile discovery and live utility remain unverified."},
     {"id":"publish-improvements","priority":2,"status":"done","dependsOn":["review-test-agents"],"acceptance":"Normal authorized commit/push with trailers and exact remote SHA verification; no release.","outcome":"eebec96 and 75b68b3 pushed and exact remote identities verified; subsequent CI correction tracked separately."},
-    {"id":"ci-windows-pipe","priority":2,"status":"in_progress","dependsOn":["publish-improvements"],"acceptance":"Preserve quote/JSON contracts, reproduce the Windows failure and verify corrected guidance in local and hosted Windows/Linux checks.","outcome":"BOM prefix observed in hosted generated-fixture stdin, reproduced locally via input code page 65001, corrected in documented pipe setup. Local regression/package checks pass; hosted correction run pending."}
+    {"id":"ci-windows-pipe","priority":2,"status":"done","dependsOn":["publish-improvements"],"acceptance":"Preserve quote/JSON contracts, reproduce the Windows failure and verify corrected guidance in local and hosted Windows/Linux checks.","outcome":"BOM prefix observed in hosted generated-fixture stdin, reproduced locally via input code page 65001, corrected in documented pipe setup. Local checks pass; hosted run 40500565113 at 36d9130c763afc481840ffe313688da487e50e83 passed every Windows/Linux validation step. Installed-host and live acceptance blockers remain unchanged."}
   ],
   "invariants": [
     {"id":"MIQ-I01","rule":"Filesystem identity is not host discovery, tool exposure or authentication.","verification":"Installation helper tests and actual host protocol."},
@@ -178,5 +188,5 @@
     {"id":"L05","task":"improve-acceptance","invariant":"MIQ-I04","evidence":"CD-04 failed after progressive extraction because the structural test read only the entrypoint. The same assertions now cover the entrypoint and both named references, with explicit reference-link assertions. Full local suites passed afterward; the check remains explicitly structural, not a model-routing evaluation.","downstream":"Future disclosure edits must update structural composition tests while retaining assertions and separately exercising actual conditional loading after host remediation.","reviewAnchor":"independentReview"},
     {"id":"L06","task":"ci-windows-pipe","invariant":"MIQ-I05","evidence":"Immutable hosted runs and local red/green execution are recorded in publicationFollowUp.ciPipeCorrection. A status-only negative assertion initially hid invalid JSON; input and output console encodings are distinct. The temporary fixture byte probe established the BOM without retrieving raw CI logs.","downstream":"improve-acceptance: retain exact input and quote gates, exercise the intended host transport after administrator remediation, and do not substitute local shell success for selected-host acceptance.","reviewAnchor":"publicationFollowUp.ciPipeCorrection.review"}
   ],
-  "continuation": "Implementation priorities 0-2 and testing agents are published as eebec96 and 75b68b3. Complete hosted verification of ciPipeCorrection before closing ci-windows-pipe; earlier failed runs remain historical evidence. Historical localValidation/independentReview describe the earlier snapshot, not the later follow-up receipts. Do not retry the denied actor/path until the CLI administrator supplies supported remediation. Then execute MarketingIQ_Host_Acceptance.md in the intended selected host, retaining historical failures and separate packet/memory/human gates. No tag, release, third-party installation or global preference save was performed. Never infer live success from package tests or supplied-instructions calibration."
+  "continuation": "Implementation priorities 0-2 and testing agents are published as eebec96 and 75b68b3. Windows pipe correction 36d9130c763afc481840ffe313688da487e50e83 passed every Windows/Linux step in run 40500565113; ci-windows-pipe is complete. Earlier failures remain historical evidence. This final receipt is documentation-only. Historical localValidation/independentReview describe the earlier snapshot, not the later follow-up receipts. Do not retry the denied actor/path until the CLI administrator supplies supported remediation. Then execute MarketingIQ_Host_Acceptance.md in the intended selected host, retaining historical failures and separate packet/memory/human gates. No tag, release, third-party installation or global preference save was performed. Never infer live success from package tests or supplied-instructions calibration."
 }
