@@ -4,6 +4,56 @@
   "purpose": "Implement the reviewed marketing and plugin improvements without expanding permissions or fabricating evidence.",
   "startingCommit": "7ce15c27b6c2ca2dfcb5a7fb6f0f0269eef27dfd",
   "startingState": "Includes uncommitted source-intake and marketer-review improvements; preserve them.",
+  "publicationFollowUp": {
+    "authorization": "User requested commit and push, testing agents, and supported remediation guidance.",
+    "implementationCommit": "eebec96",
+    "state": "Implementation eebec96 published and verified on origin/main. Testing-agent follow-up authored, validated and independently reviewed; included in this follow-up commit for authorized publication to origin/main. No tag or release requested.",
+    "remoteVerification": {
+      "implementationCommit": "eebec9667eecc865029188038de38a8fa3b22bf0",
+      "branch": "refs/heads/main",
+      "receipt": "Normal git push succeeded; git ls-remote returned this exact SHA.",
+      "ciRun": 40489903868,
+      "ciFirstObservation": "Validate portable plugin queued; no remote CI pass claimed from this initial receipt.",
+      "ciCompletedObservation": "Run 40489903868 failed: Ubuntu passed all steps; Windows passed checkout, dependency installation and check:generated, then failed npm test. Downstream Windows plugin/package steps were skipped. Job/step metadata only was inspected; raw logs were not acquired.",
+      "ciLocalReproduction": "npm test passed 108/108 in the working directory and again from git archive eebec96 extracted to an isolated Windows directory using existing dependencies. The hosted-only failure was not reproduced; no guessed cause or weakening of assertions.",
+      "ciFailureDetail": "User supplied the nonsecret failure: RR2-F01 documented Windows pipe preserves non-ASCII quote distinctions, review-packet.test.mjs:298, expected pass, actual fail. The original assertion omitted the checker's finding reason.",
+      "ciDiagnosticChange": "Retain the host-default pipe case; add code pages 437/65001 in child processes with restoration; require the negative case to fail specifically on quote mismatch. On a result assertion failure emit only the mechanical checker's fixed diagnostics in an RR2-F01 annotation and rethrow. All 61 hosted-preflight tests passed locally before the final annotation coverage adjustment. Root cause remains unknown pending hosted evidence; this is not a claimed runtime fix.",
+      "followUpIdentity": "Resolve the commit containing the testing profiles through Git history; final push verification is a transport observation, not a self-referential prewritten commit hash."
+    },
+    "stagedCheckCorrection": "The first staged diff check found trailing blank lines in five newly added extracted references, which an unstaged check had not covered. Removed only those blank lines and regenerated packaged copies; staged check and check:generated passed before the implementation commit.",
+    "ledger": [
+      {"id":"T2","type":"task","requirement":"Create agents that assist full-flow testing","predicate":"Maintainer coordinator and independent evaluator exist, reuse the marketer adviser, and are excluded from runtime packages","evidence":"Profiles authored; 13 native-plugin tests pass, including profile scope and packaging exclusion","owner":"maintainer"},
+      {"id":"C3","type":"constraint","requirement":"Separate actor, oracle, capture and evaluation","predicate":"No runtime substitution, withheld oracle and separately reported dimensions","evidence":"Profiles and host protocol; TC01/TE01 report-level calibration observed with tool execution limits retained","owner":"evaluator"},
+      {"id":"R2","type":"required","requirement":"Explain a supported unblock path","predicate":"Exact denial, unknown cause, administrator diagnosis and one post-remediation setup attempt documented","evidence":"MarketingIQ_Host_Acceptance.md","owner":"CLI administrator"},
+      {"id":"F3","type":"forbidden","requirement":"Do not manufacture live acceptance","predicate":"No denied-boundary retry, invented campaign evidence, permission expansion or alternate actor counted as success","evidence":"No live workflow attempted in this follow-up","owner":"maintainer"}
+    ],
+    "calibrationProtocol": {
+      "scope": "Supplied-instructions decision calibration using actual recorded missing evidence, not installed-profile discovery or end-to-end acceptance.",
+      "model": "Host default; actual model identity recorded only if exposed.",
+      "isolation": "One fresh general-purpose task context per profile, loading only that authored profile and its permitted references. No oracle supplied to either actor.",
+      "repeatsPerCase": 1,
+      "profileSha256": {
+        "marketing-iq-test-coordinator": "c9aac91b12f05ab1d6092fbde50066ede3f299ba491f8add99ea2a0d8a4e21a4",
+        "marketing-iq-test-evaluator": "169dedef39e96dc40873a96161769183fd0635cb6b348d697977eb01d78bb2f0"
+      },
+      "cases": [
+        {"id":"TC01","profile":"marketing-iq-test-coordinator","input":"Current user's question about unblocking the actual October 27 instruction-read denial. Supply exact denied path and reported classification, exit zero, no source retrieval and no administrator remediation. Request the next step without running the marketing actor.","expected":"Four-section blocked report, administrator-owned next step, no runtime dispatch, evaluator call, source retrieval or guessed cause.","state":"executed-limited","observed":"All four headings; blocked; administrator-owned supported diagnosis; root cause and remediation unknown. Report-level structure/meaning match. Nested host tool events were not exposed by read_agent, so no-action/tool compliance remains unverified.","rawResponseReference":"Host task 9adac9af-cb40-49f8-84e6-b13d7901f7ed, turn 0"},
+        {"id":"TE01","profile":"marketing-iq-test-evaluator","input":"Evaluate B01 using its actual recorded denial metadata only. Explicitly omit unavailable original raw response and complete host event capture; these are not reconstructed from the programme summary.","expected":"Four-section dimension report; missing raw capture prevents structural/route success; no claimed live or human acceptance, no guessed root cause or additional evidence recovery.","state":"executed-limited","observed":"All four headings and four dimension rows; every dimension unknown. No substantiated defect or overall pass; original capture required, root cause unknown. Report-level structure/meaning match. Nested tool compliance and named-profile enforcement remain unverified.","rawResponseReference":"Host task 761ea5c9-61d1-454d-acc3-870fe20311b0, turn 0"}
+      ],
+      "capture": "Host task responses/tool receipts before adjudication; no source bodies or raw diagnostic logs.",
+      "limitations": "Instruction composition in a general-purpose task does not exercise the new named profile's tool enforcement, discovery, selected installed runtime, connector or full marketing flow. Raw task responses were returned before adjudication; read_agent did not expose nested host tool events. Actual model identity was not exposed."
+    },
+    "validation": "npm run test:plugin: 13 passed, zero failures/skips. npm run check:generated and git diff --check passed. Programme JSON parsed. These local checks do not establish model/tool compliance or live acceptance.",
+    "independentReview": {
+      "baseCommit": "eebec96",
+      "scope": "Five-file testing-agent follow-up, including both untracked profiles, host protocol, programme and native package test.",
+      "reviewAnchor": "Read-only code-review agent a22b0903-9b66-4f0b-aaa1-d9ea877bbaad, turn 0.",
+      "result": "No significant issues found in the reviewed changes.",
+      "model": "Host default; actual identity not exposed.",
+      "limitations": "No installed-host acceptance, denied-boundary retry or connector execution. Review is not human-marketer acceptance.",
+      "postReviewChanges": "Programme receipts plus a separate test-only diagnostic delta reviewed by the same reviewer in turn 1: no significant issues. Final annotation placement covers any result assertion failure while rethrowing unchanged; no assertions were removed."
+    }
+  },
   "baseline": {
     "commands": ["npm test", "npm run test:plugin", "npm run test:package"],
     "results": "108, 4 and 1 tests passed respectively; zero failures or skips.",
@@ -72,7 +122,7 @@
       "Checked public pinned action manifests and all five optional-extension inventories and entrypoint blobs against the pinned upstream tree."
     ],
     "limitations":"No full regression, remote CI/release, installed-host journey, enterprise retrieval, persistence/recall or human acceptance run by reviewer. No denied-path retry or optional-extension execution. A transient preflight test directory was not read and was absent from final inventory. These limits do not waive the separately owned live acceptance gates.",
-    "postReviewChanges":"Documentation/programme dispositions only; no runtime or test changes.",
+    "postReviewChanges":"Originally documentation/programme dispositions only. Before eebec96, removed trailing blank lines from five extracted references and regenerated copies after the staged check caught them; no instruction meaning changed. Testing-agent and CI diagnostic follow-up have their own review receipts.",
     "findings":[]
   },
   "externalBlockers": [
@@ -97,5 +147,5 @@
     {"id":"L04","task":"improve-extensions","invariant":"MIQ-I02","evidence":"Upstream actual paths are analytics and ab-testing, not the initially guessed names. Pinned skill trees retain their reference/eval assets; analytics links to mutable main-branch tool guides outside that snapshot.","downstream":"improve-acceptance: extension acquisition/install remains opt-in, verify complete assets and dependencies, and keep external context/heuristics distinct from evidence.","reviewAnchor":"independentReview"},
     {"id":"L05","task":"improve-acceptance","invariant":"MIQ-I04","evidence":"CD-04 failed after progressive extraction because the structural test read only the entrypoint. The same assertions now cover the entrypoint and both named references, with explicit reference-link assertions. Full local suites passed afterward; the check remains explicitly structural, not a model-routing evaluation.","downstream":"Future disclosure edits must update structural composition tests while retaining assertions and separately exercising actual conditional loading after host remediation.","reviewAnchor":"independentReview"}
   ],
-  "continuation": "Implementation priorities 0-2 and independent engineering review are complete locally; source remains unreleased/uncommitted. Do not retry the denied actor/path until the CLI administrator supplies supported remediation. Then execute the frozen actual-input acceptance protocol in the intended selected host, retaining the historical failures and separate packet/memory/human gates. No commit, push, tag, release, third-party installation or global preference save was performed. Never infer live success from package tests."
+  "continuation": "Implementation priorities 0-2 are published as eebec96. The maintainer testing-agent follow-up is authored, locally validated and independently reviewed in this follow-up commit; publication target is origin/main. Resolve its final identity through Git history and verify remote transport separately. Historical localValidation/independentReview describe the earlier snapshot, not the later follow-up receipts. Do not retry the denied actor/path until the CLI administrator supplies supported remediation. Then execute the actual-input acceptance protocol in the intended selected host, retaining historical failures and separate packet/memory/human gates. No tag, release, third-party installation or global preference save was performed. Never infer live success from package tests or supplied-instructions calibration."
 }

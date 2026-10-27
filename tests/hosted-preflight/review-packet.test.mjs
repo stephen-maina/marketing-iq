@@ -287,16 +287,29 @@ test("RR2-F01 documented Windows pipe preserves non-ASCII quote distinctions", {
     const readEncoding = guide.includes("Get-Content -Raw -Encoding utf8 review-packet.json") ? "-Encoding utf8" : "";
     const packet = clone(makeLaunchPacket());
     packet.candidate.facts[0].quote = "Le caf\u00e9 ouvre.";
-    const command = `${prelude}; Get-Content -Raw ${readEncoding} '${path.replaceAll("'", "''")}' | & '${process.execPath.replaceAll("'", "''")}' '${scriptPath.replaceAll("'", "''")}'; exit $LASTEXITCODE`;
-    for (const [body, expected] of [["Le caf\u00e8 ouvre.", "fail"], ["Le caf\u00e9 ouvre.", "pass"]]) {
-        packet.evidence[0].body = body;
-        writeFileSync(path, JSON.stringify(packet), "utf8");
-        const result = spawnSync("powershell.exe", ["-NoProfile", "-Command", command], {
-            encoding: "utf8", timeout: 15000, maxBuffer: 1024 * 1024,
-        });
-        assert.equal(result.stderr, "");
-        assert.equal(readJson(result).status, expected);
-        assert.equal(result.status, expected === "pass" ? 0 : 1);
+    const pipe = `${prelude}; Get-Content -Raw ${readEncoding} '${path.replaceAll("'", "''")}' | & '${process.execPath.replaceAll("'", "''")}' '${scriptPath.replaceAll("'", "''")}'`;
+    for (const codePage of [null, 437, 65001]) {
+        const command = codePage === null ? `${pipe}; exit $LASTEXITCODE`
+            : `$previousEncoding = [Console]::OutputEncoding; $code = 1; try { [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(${codePage}); ${pipe}; $code = $LASTEXITCODE } finally { [Console]::OutputEncoding = $previousEncoding }; exit $code`;
+        for (const [body, expected] of [["Le caf\u00e8 ouvre.", "fail"], ["Le caf\u00e9 ouvre.", "pass"]]) {
+            packet.evidence[0].body = body;
+            writeFileSync(path, JSON.stringify(packet), "utf8");
+            const result = spawnSync("powershell.exe", ["-NoProfile", "-Command", command], {
+                encoding: "utf8", timeout: 15000, maxBuffer: 1024 * 1024,
+            });
+            assert.equal(result.stderr, "");
+            const outcome = readJson(result);
+            const diagnostic = `code page ${codePage ?? "host-default"}, expected ${expected}: ${JSON.stringify(outcome)}`;
+            try {
+                assert.equal(outcome.status, expected, diagnostic);
+                if (expected === "fail")
+                    assertFailingResult(outcome, "candidate.facts[0].quote", "exact");
+                assert.equal(result.status, expected === "pass" ? 0 : 1);
+            } catch (error) {
+                console.error(`::error title=RR2-F01::${diagnostic}`);
+                throw error;
+            }
+        }
     }
     assert.equal(prelude, requiredPrelude);
     assert.equal(readEncoding, "-Encoding utf8");

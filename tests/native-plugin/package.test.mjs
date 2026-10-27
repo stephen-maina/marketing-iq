@@ -10,6 +10,28 @@ import { runtimeAssets } from "../../tools/MarketingIQ.Portable/assets.mjs";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const plugin = join(root, "plugins", "marketing-iq");
 
+test("maintainer acceptance agents and evaluator oracles stay outside runtime packages", async () => {
+    // Packaging/profile checks only; these do not execute an agent.
+    for (const [name, tools] of [
+        ["marketing-iq-test-coordinator", ["read", "agent"]],
+        ["marketing-iq-test-evaluator", ["read"]]
+    ]) {
+        const path = `.github/agents/${name}.agent.md`;
+        const profile = await fs.readFile(join(root, path), "utf8");
+        assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(profile)[1]), tools);
+        assert.equal(runtimeAssets.includes(path), false);
+        assert.equal(await fs.stat(join(plugin, "com.github.copilot", "agents", `${name}.agent.md`))
+            .then(() => true, () => false), false);
+        assert.match(profile, /# Output-format hard gate[\s\S]*# Role[\s\S]*# Final check/);
+    }
+    for (const path of runtimeAssets) {
+        assert.doesNotMatch(path, /test-coordinator|test-evaluator|Behavior_Acceptance|Improvement_Programme/);
+        if (!path.endsWith(".md")) continue;
+        const text = await fs.readFile(join(root, path), "utf8");
+        assert.doesNotMatch(text, /marketing-iq-test-(?:coordinator|evaluator)|MarketingIQ_Behavior_Acceptance/);
+    }
+});
+
 test("runtime package, CLI and plugin report the same release version", async () => {
     const { version } = JSON.parse(await fs.readFile(join(root, "package.json")));
     const portable = join(plugin, "skills", "marketing-iq", "scripts", "portable");
