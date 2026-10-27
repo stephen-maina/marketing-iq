@@ -282,15 +282,17 @@ test("RR2-F01 documented Windows pipe preserves non-ASCII quote distinctions", {
     const directory = makeRuntimeDirectory(t, "utf8-pipe");
     const path = join(directory, "packet.json");
     const guide = readFileSync(join(dirname(scriptPath), "..", "references", "review-preflight.md"), "utf8");
-    const requiredPrelude = "$OutputEncoding = [System.Text.UTF8Encoding]::new($false)";
-    const prelude = guide.includes(requiredPrelude) ? requiredPrelude : "";
-    const readEncoding = guide.includes("Get-Content -Raw -Encoding utf8 review-packet.json") ? "-Encoding utf8" : "";
+    const example = guide.match(/### 1\. Safe stdin packet[\s\S]*?```powershell\r?\n([\s\S]*?)\r?\n```/u);
+    assert.ok(example, "documented stdin example must exist");
     const packet = clone(makeLaunchPacket());
     packet.candidate.facts[0].quote = "Le caf\u00e9 ouvre.";
-    const pipe = `${prelude}; Get-Content -Raw ${readEncoding} '${path.replaceAll("'", "''")}' | & '${process.execPath.replaceAll("'", "''")}' '${scriptPath.replaceAll("'", "''")}'`;
+    const pipe = example[1]
+        .replace("review-packet.json", `'${path.replaceAll("'", "''")}'`)
+        .replace("node .github\\skills\\marketing-iq\\scripts\\Test-ReviewPacket.mjs",
+            `& '${process.execPath.replaceAll("'", "''")}' '${scriptPath.replaceAll("'", "''")}'`);
     for (const codePage of [null, 437, 65001]) {
         const command = codePage === null ? `${pipe}; exit $LASTEXITCODE`
-            : `$previousEncoding = [Console]::OutputEncoding; $code = 1; try { [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(${codePage}); ${pipe}; $code = $LASTEXITCODE } finally { [Console]::OutputEncoding = $previousEncoding }; exit $code`;
+            : `$previousInputEncoding = [Console]::InputEncoding; $previousEncoding = [Console]::OutputEncoding; $code = 1; try { [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(${codePage}); ${pipe}; $code = $LASTEXITCODE } finally { [Console]::InputEncoding = $previousInputEncoding; [Console]::OutputEncoding = $previousEncoding }; exit $code`;
         for (const [body, expected] of [["Le caf\u00e8 ouvre.", "fail"], ["Le caf\u00e9 ouvre.", "pass"]]) {
             packet.evidence[0].body = body;
             writeFileSync(path, JSON.stringify(packet), "utf8");
@@ -307,33 +309,10 @@ test("RR2-F01 documented Windows pipe preserves non-ASCII quote distinctions", {
                 assert.equal(result.status, expected === "pass" ? 0 : 1);
             } catch (error) {
                 console.error(`::error title=RR2-F01::${diagnostic}`);
-                // Probe only this generated fixture, never a live evidence packet.
-                const probePath = join(directory, "stdin-probe.mjs");
-                writeFileSync(probePath, `
-import { readFileSync } from "node:fs";
-const bytes = readFileSync(0);
-let validJson = false;
-try { JSON.parse(bytes.toString("utf8")); validJson = true; } catch {}
-console.log(JSON.stringify({
-    node: process.version,
-    byteLength: bytes.length,
-    firstBytes: Array.from(bytes.subarray(0, 16)),
-    firstNul: bytes.indexOf(0),
-    validJson,
-}));
-`, "utf8");
-                const probe = spawnSync("powershell.exe", [
-                    "-NoProfile", "-Command",
-                    command.replace(scriptPath.replaceAll("'", "''"), probePath.replaceAll("'", "''")),
-                ], { encoding: "utf8", timeout: 15000, maxBuffer: 1024 * 1024 });
-                if (!probe.error && probe.status === 0)
-                    console.error(`::error title=RR2-F01-bytes::${JSON.stringify(readJson(probe))}`);
                 throw error;
             }
         }
     }
-    assert.equal(prelude, requiredPrelude);
-    assert.equal(readEncoding, "-Encoding utf8");
 });
 
 test("validateReviewPacket passes a Field review packet with verbatim readable copy", () => {

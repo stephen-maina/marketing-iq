@@ -190,9 +190,22 @@ synthetic fixture only; live stdin uses an already-retained host capture. For
 permitted native-tool staging, use `--packet-file` instead:
 
 ```powershell
-$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-Get-Content -Raw -Encoding utf8 review-packet.json | node .github\skills\marketing-iq\scripts\Test-ReviewPacket.mjs
+$savedInputEncoding = [Console]::InputEncoding
+$savedOutputEncoding = $OutputEncoding
+try {
+    $OutputEncoding = [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+    Get-Content -Raw -Encoding utf8 review-packet.json | node .github\skills\marketing-iq\scripts\Test-ReviewPacket.mjs
+} finally {
+    [Console]::InputEncoding = $savedInputEncoding
+    $OutputEncoding = $savedOutputEncoding
+}
 ```
+
+Windows PowerShell's .NET Framework process launcher can prepend the console
+input encoding's byte-order mark to redirected stdin before the pipeline writes
+anything. Set both encodings to BOM-less UTF-8 and restore them afterward;
+`$OutputEncoding` alone does not prevent that prefix. The checker deliberately
+does not strip or repair packet bytes.
 
 The command prints only:
 
@@ -289,11 +302,18 @@ data, and pipe that payload to stdin. Do not pass the truncated preview back to
 PowerShell shape:
 
 ```powershell
-$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $capturePath = 'C:\observed\host-capture.txt'
 $capture = Get-Content -Raw -Encoding utf8 $capturePath
 $payload = <extract the exact [Turn N] payload from the observed host capture as data>
-$payload | node .github\skills\marketing-iq\scripts\Test-ReviewPacket.mjs
+$savedInputEncoding = [Console]::InputEncoding
+$savedOutputEncoding = $OutputEncoding
+try {
+    $OutputEncoding = [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $payload | node .github\skills\marketing-iq\scripts\Test-ReviewPacket.mjs
+} finally {
+    [Console]::InputEncoding = $savedInputEncoding
+    $OutputEncoding = $savedOutputEncoding
+}
 ```
 
 The important boundary is the same as ordinary stdin mode:
