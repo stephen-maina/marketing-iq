@@ -34,7 +34,12 @@ test("CD-02 arbitrary user scope and missing-connector setup have explicit branc
 
 test("CD-03 discovery preserves denial and the narrow explicit-agent tool profile", () => {
     const tools = JSON.parse(/^tools:\s*(.+)$/m.exec(agent)[1]);
-    assert.deepEqual(tools, ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch"]);
+    // `skill` loads the plugin's own self-contained instructions (spec §11: plugin files can be unreadable);
+    // it grants no retrieval, web or write capability. The intent check below keeps the profile narrow.
+    assert.deepEqual(tools, ["read", "execute", "agent", "skill", "workiq/retrieve", "workiq/fetch"]);
+    for (const tool of tools) {
+        assert.doesNotMatch(tool, /^(?:\*|web|edit|write|search|todo|memory|.*\/\*)$/i, `profile must stay narrow: ${tool}`);
+    }
     assert.match(agent, /never switch providers after denial/);
     assert.match(agent, /Do not read connector configuration or credentials/);
     assert.match(agent, /Do not broaden this allow-list/);

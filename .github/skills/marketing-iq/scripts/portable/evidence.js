@@ -148,3 +148,38 @@ export function normalizeEvidence(value, selectedAdapter) {
     return { schemaVersion: 1, status: evidence.length ? "ready" : "blocked", adapterId: selectedAdapter,
         sources, evidence, provenance, proofGaps };
 }
+// R3: build the normal handoff from a host-captured connector result selected by line range,
+// so source text is never rebuilt by the model in a script or a written file.
+export const captureSeparator = "\n[...]\n";
+export const captureMaxAgeMs = 6 * 3600 * 1000;
+export function captureHandoff(source, modifiedMs, nowMs, options) {
+    requireThat(label(options.adapter) !== "local-file");
+    requireThat(modifiedMs <= nowMs + 300000 && nowMs - modifiedMs <= captureMaxAgeMs, "CAPTURE_STALE");
+    const all = source.split(/\r?\n/);
+    const parts = text(options.lines, 512).split(",");
+    requireThat(parts.length <= 20);
+    let previous = 0;
+    const ranges = parts.map(part => {
+        const match = /^([1-9]\d{0,6})-([1-9]\d{0,6})$/.exec(part);
+        requireThat(match);
+        const first = Number(match[1]), last = Number(match[2]);
+        // Ascending, non-overlapping and non-adjacent: adjacent ranges must be one range,
+        // otherwise the separator would claim a gap that does not exist.
+        requireThat(first <= last && last <= all.length && (previous === 0 ? first >= 1 : first >= previous + 2));
+        previous = last;
+        return all.slice(first - 1, last).join("\n");
+    });
+    for (const range of ranges)
+        requireThat(range.trim().length > 0);
+    return {
+        schemaVersion: 1, adapterId: options.adapter, outcome: "ok",
+        scope: { kind: options.scopeKind, url: options.scopeUrl },
+        sources: [{
+                sourceId: options.sourceUrl, sourceUrl: options.sourceUrl, sourceKind: options.sourceKind,
+                evidenceKind: "document-excerpt", coverage: "partial-body", retrievedThisSession: true,
+                body: ranges.join(captureSeparator), versionId: null, locator: null,
+                restrictions: { access: "allowed", usage: "unknown", sensitivityLabel: null },
+                provenance: { tool: options.tool, observedAt: new Date(modifiedMs).toISOString(), currentResponse: true, locationUrl: null }
+            }]
+    };
+}

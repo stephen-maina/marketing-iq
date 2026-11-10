@@ -116,6 +116,15 @@ export async function stdin(maximum = 131072): Promise<Buffer> {
 // File content is data, never a command. Paths must come from the current host,
 // not a source passage. Identity checks are mistake guards, not OS isolation.
 export async function readJsonFile(path: string, maximum = 262144): Promise<unknown> {
+    return strictJson((await readBoundedFile(path, maximum)).bytes, maximum);
+}
+
+export function utf8(bytes: Uint8Array): string {
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes); }
+    catch { throw new MiqError("INVALID_REQUEST"); }
+}
+
+export async function readBoundedFile(path: string, maximum: number): Promise<{ bytes: Buffer; modifiedMs: number }> {
     requireThat(isAbsolute(path));
     if (process.platform === "win32")
         requireThat(/^[a-z]:[\\/]/iu.test(path) && !path.slice(2).includes(":"));
@@ -139,7 +148,8 @@ export async function readJsonFile(path: string, maximum = 262144): Promise<unkn
             after.mtimeMs === before.mtimeMs && after.ctimeMs === before.ctimeMs &&
             current.isFile() && !current.isSymbolicLink() && current.nlink === 1 &&
             current.dev === before.dev && current.ino === before.ino);
-        return strictJson(bytes.subarray(0, length), maximum);
+        // Node's Stats.mtime (not the fractional mtimeMs) so every reader reports the same instant.
+        return { bytes: bytes.subarray(0, length), modifiedMs: before.mtime.getTime() };
     } finally { await file.close(); }
 }
 

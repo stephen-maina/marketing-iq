@@ -36,7 +36,18 @@ on the exact normalized handoff using safe data-only stdin/current permitted
 host-capture transport, or `--input-file <absolute-session-handoff.json>` under
 `references\packet-transport.md` when a permitted native data-only writer is
 actually exposed. Do not put source bodies in shell literals, environment
-variables, test fixtures or unapproved copies. If safe transport is unavailable, block
+variables, test fixtures or unapproved copies.
+
+When the host saved the selected connector's current result to a file (for
+example "Output too large… Saved to: <path>"), prefer
+`node .github\skills\marketing-iq\scripts\portable\cli.js capture --adapter <id>
+--capture-file <that absolute path> --lines <a-b[,c-d]> --source-url <observed URL>
+--scope-url <user scope URL> --scope-kind exact|container --tool <actual tool name>`.
+View the file, then choose ascending, non-adjacent line ranges that answer the
+question, at most 20,000 characters per source. Never edit, slice, rewrite or copy
+the text yourself; the CLI reads the bytes, joins ranges with `[...]` and applies
+the same admission rules. Quote only from the returned body. Captures older than
+six hours are rejected as not current. If safe transport is unavailable, block
 with that precise processing gap. This check validates shape, scope and mechanical
 admission, not truth, authentication, authority or semantic fit. Retain all returned
 restrictions/proof gaps and original admitted passages for independent review.

@@ -150,7 +150,9 @@ directory and runs the synthetic helper journey from the relocated files.
 Optional developer-only `npm run test:parity` compares synthetic lifecycle and
 timestamp results against the existing built C# decision executable. That
 comparison needs its .NET runtime/build artifact; consumers and the ordinary
-Node/package checks do not.
+Node/package checks do not. The C# source is not in this repository: set
+`MIQ_DECISIONS_ORACLE` to the absolute path of a built `MarketingIQ.Decisions.dll`.
+Without it the check fails with that instruction rather than passing or skipping.
 
 The C# ApplicationHost and optional Node/.NET LocalWorkflow remain legacy,
 separate paths with their existing unresolved integration gates. They are not

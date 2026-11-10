@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -15,7 +15,10 @@ test("allowlisted archive runs the synthetic Launch-confirm-discover-Field helpe
     const archive = join(root, "artifacts", `marketing-iq-workspace-${version}.tgz`);
     const hash = createHash("sha256").update(await fs.readFile(archive)).digest("hex");
     assert.match(await fs.readFile(archive + ".sha256", "utf8"), new RegExp("^" + hash + "  "));
-    const extraction = spawnSync("tar", ["-xzf", archive, "-C", temporary], { encoding: "utf8", timeout: 20000 });
+    // GNU tar (e.g. Git Bash) reads an archive name like "C:\..." as remote host "C"; a name
+    // relative to cwd extracts identically with GNU tar, bsdtar and Windows tar.exe.
+    const extraction = spawnSync("tar", ["-xzf", basename(archive), "-C", temporary],
+        { cwd: dirname(archive), encoding: "utf8", timeout: 20000 });
     if (extraction.error) throw extraction.error;
     assert.equal(extraction.status, 0, extraction.stderr);
     const workspace = join(temporary, "package");

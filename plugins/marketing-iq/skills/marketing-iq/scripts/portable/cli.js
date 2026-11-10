@@ -2,9 +2,9 @@
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { executeDecision } from "./decisions.js";
-import { normalizeEvidence } from "./evidence.js";
+import { captureHandoff, normalizeEvidence } from "./evidence.js";
 import { context, routes } from "./routes.js";
-import { MiqError, ioCode, readJsonFile, requireThat, stdin, strictJson } from "./json.js";
+import { MiqError, ioCode, readBoundedFile, readJsonFile, requireThat, stdin, strictJson, utf8 } from "./json.js";
 const command = process.argv[2];
 try {
     const metadata = strictJson(await fs.readFile(new URL("./package.json", import.meta.url)));
@@ -14,6 +14,8 @@ try {
         "context --use-case launch-decision|field-activation\n" +
         "routes --use-case <workflow> --product-key <label> --topic-key <label> --evidence-need <lane>\n" +
         "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
+        "capture --adapter <id> --capture-file <absolute-host-capture> --lines <a-b[,c-d]> --source-url <https> " +
+        "--scope-url <https> --scope-kind exact|container --tool <name> [--source-kind <kind>]\n" +
         "local-file --file <explicit-synthetic-envelope.json>\n" +
         "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
         "check | --version | --help\n";
@@ -75,6 +77,19 @@ try {
             result = normalizeEvidence(args.has("--input-file") ? await readJsonFile(arg("--input-file")) :
                 strictJson(await stdin(262144), 262144), arg("--adapter"));
             break;
+        case "capture": {
+            options(["--adapter", "--capture-file", "--lines", "--source-url", "--scope-url", "--scope-kind", "--tool"], ["--source-kind"]);
+            const capture = await readBoundedFile(arg("--capture-file"), 2097152);
+            const admitted = normalizeEvidence(captureHandoff(utf8(capture.bytes), capture.modifiedMs, Date.now(), {
+                adapter: arg("--adapter"), lines: arg("--lines"), sourceUrl: arg("--source-url"),
+                scopeUrl: arg("--scope-url"), scopeKind: arg("--scope-kind"), tool: arg("--tool"),
+                sourceKind: args.has("--source-kind") ? arg("--source-kind") : "document"
+            }), arg("--adapter"));
+            admitted.proofGaps.push(`${arg("--source-url")}: body is line ranges ${arg("--lines")} of a host-captured ` +
+                "tool result selected by the caller; the selection is not an independent review.");
+            result = admitted;
+            break;
+        }
         case "local-file": {
             options(["--file"]);
             const file = await fs.open(arg("--file"), "r");

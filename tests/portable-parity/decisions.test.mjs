@@ -6,10 +6,16 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { root, run, record, publish, discover, withdraw } from "../portable/fixtures.mjs";
 
-const oracle = join(root, "tools", "MarketingIQ.Decisions", "bin", "Debug", "net10.0", "MarketingIQ.Decisions.dll");
+// The C# oracle's source is not part of this repository. Point MIQ_DECISIONS_ORACLE at a built
+// MarketingIQ.Decisions.dll from the source workspace; the default keeps that workspace's layout.
+const oracle = process.env.MIQ_DECISIONS_ORACLE ||
+    join(root, "tools", "MarketingIQ.Decisions", "bin", "Debug", "net10.0", "MarketingIQ.Decisions.dll");
 
 test("Node and existing C# executable agree on synthetic precision, lifecycle and wire validation", async t => {
-    await fs.access(oracle);
+    await fs.access(oracle).catch(() => {
+        throw new Error(`C# decision oracle not found: ${oracle}. This optional parity check needs a built ` +
+            "MarketingIQ.Decisions.dll; set MIQ_DECISIONS_ORACLE to its absolute path.");
+    });
     const temporary = await fs.mkdtemp(join(tmpdir(), "miq-parity-test-"));
     t.after(() => fs.rm(temporary, { recursive: true, force: true }));
     const nodeStore = join(temporary, "node"), dotnetStore = join(temporary, "dotnet");

@@ -9,7 +9,8 @@ provision authentication, or reimplement its storage and lifecycle rules.
 Command: `node .github\skills\marketing-iq\scripts\portable\cli.js decisions`.
 Requires accessible Node >=22.18.0; no .NET runtime, SDK, TypeScript compiler or
 dependency installation is needed by consumers. Compiled JavaScript is shipped.
-Store root: `local-data\launch-decisions`, resolved from the workspace.
+Store root: `local-data\launch-decisions` under the current working directory,
+passed as an absolute `--store-root`; never the skill or plugin directory.
 Read-only Field discovery uses `--read-only`. Do not read the accepted/archive
 files directly: the CLI validates acceptance, applicability and lifecycle.
 If the executable or tool is unavailable, name the setup gap. Do not silently

@@ -109,7 +109,9 @@ test("runtime check rejects changed, missing and unknown files without mutation"
 
 test("progressive entrypoint stays bounded and every shipped reference resolves", async () => {
     const shared = join(plugin, "skills", "marketing-iq");
-    const entry = await fs.readFile(join(shared, "SKILL.md"), "utf8");
+    // The authored entrypoint stays progressive. The installed copy inlines references (spec §11, R1-a),
+    // so its bound is the 256 KiB entrypoint limit checked in the inlining test below.
+    const entry = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "SKILL.md"), "utf8");
     assert.ok(entry.split("\n").length < 500, "shared entrypoint should not inline the whole workflow");
     for (const file of await fs.readdir(plugin, { recursive: true, withFileTypes: true })) {
         if (!file.isFile() || !file.name.endsWith(".md") || file.name === "README.md") continue;
@@ -160,6 +162,127 @@ test("native plugin ships only runtime assets and installation-relative instruct
     }
     const registry = JSON.parse(await fs.readFile(join(plugin, "skills", "marketing-iq", "references", "sharepoint-source-routes.json")));
     assert.deepEqual(registry.routes, []);
+});
+
+test("installed instructions keep accepted decisions in the consumer working directory", async () => {
+    // Contract: the agent says local-data/launch-decisions belongs to the consumer workspace,
+    // never the plugin cache. No installed instruction may resolve the store elsewhere.
+    const shared = join(plugin, "skills", "marketing-iq");
+    const tools = await fs.readFile(join(shared, "references", "decision-tools.md"), "utf8");
+    const storeRoot = tools.split("\n").find(line => line.startsWith("Store root:"));
+    assert.ok(storeRoot, "decision-tools must state the store root");
+    assert.match(storeRoot, /local-data\\launch-decisions/);
+    assert.match(storeRoot, /current working directory/);
+    for (const file of await fs.readdir(plugin, { recursive: true, withFileTypes: true })) {
+        if (!file.isFile() || !file.name.endsWith(".md")) continue;
+        for (const line of (await fs.readFile(join(file.parentPath, file.name), "utf8")).split("\n")) {
+            if (/local-data|Store root/.test(line)) assert.doesNotMatch(line, /resolved from the installed/, line);
+        }
+    }
+    // Neighbouring legitimate rewrites must survive: workflow skills read references from the install.
+    for (const name of ["marketing-iq-launch-decision", "marketing-iq-field-activation"]) {
+        assert.match(await fs.readFile(join(plugin, "skills", name, "SKILL.md"), "utf8"),
+            /references\\[a-z-]+\.md` from the installed skill directory\./);
+    }
+});
+
+test("installed skills inline every reachable reference because plugin files may be unreadable", async () => {
+    // Host evidence (spec §11, S1b/S1c): Copilot CLI 1.0.107 denied view reads under the plugin cache,
+    // while the skill tool delivered SKILL.md. Each installed skill must therefore be self-contained.
+    const shared = join(plugin, "skills", "marketing-iq");
+    for (const name of ["marketing-iq", "marketing-iq-launch-decision", "marketing-iq-field-activation",
+        "marketing-iq-campaign-planning"]) {
+        const bytes = await fs.readFile(join(plugin, "skills", name, "SKILL.md"));
+        assert.ok(bytes.length <= 262144, `${name} exceeds the 256 KiB entrypoint bound`);
+        const text = bytes.toString("utf8");
+        const [preamble] = text.split("\n# Inlined reference: ");
+        assert.match(preamble, /do not use\s+file tools/, `${name} must say references are inlined`);
+        assert.match(preamble, /skill tool/, `${name} must load other workflows with the skill tool`);
+        const sections = new Set([...text.matchAll(/^# Inlined reference: (\S+)$/gm)].map(match => match[1]));
+        for (const match of text.matchAll(/references\\([a-z][a-z-]+\.md)/g)) {
+            assert.ok(sections.has(`references\\${match[1]}`), `${name} mentions ${match[0]} without inlining it`);
+        }
+        if (name !== "marketing-iq") assert.ok(sections.has("<MIQ_SHARED>\\SKILL.md"), `${name} lacks the shared policy`);
+        for (const label of sections) {
+            if (!label.startsWith("references\\")) continue;
+            const original = await fs.readFile(join(shared, "references", label.slice("references\\".length)), "utf8");
+            assert.ok(text.includes(original.trimEnd()), `${name}: inlined ${label} differs from the shipped file`);
+        }
+    }
+});
+
+test("evidence hard gate is identical and delivered before the role in every source workflow", async () => {
+    // Interactive trial (spec, 2026-11-10): the model loaded the workflow skill first, used provider-side
+    // web search and delivered unadmitted claims. The gate must arrive early and say the same thing everywhere.
+    // Packaging check only; whether a model obeys it needs the interactive rerun.
+    const gate = text => /\n# Evidence hard gate\n[\s\S]*?(?=\n# )/.exec(text)?.[0];
+    const canonical = [];
+    for (const name of ["marketing-iq", "marketing-iq-launch-decision", "marketing-iq-field-activation"]) {
+        const source = (await fs.readFile(join(root, ".github", "skills", name, "SKILL.md"), "utf8")).replaceAll("\r\n", "\n");
+        const block = gate(source);
+        assert.ok(block, `${name} lacks the evidence hard gate`);
+        canonical.push(block);
+        const installed = await fs.readFile(join(plugin, "skills", name, "SKILL.md"), "utf8");
+        const at = installed.indexOf("\n# Evidence hard gate\n");
+        assert.ok(at > 0 && at < installed.indexOf("\n# Role\n"), `${name}: gate must precede the role`);
+        // Rerun 2026-11-10: "name both URLs" pushed the model to probe the redirect with provider-side
+        // open_page, because the connector capture has no destination URL. Locations come from the connector only.
+        for (const rule of [/provider-side web search/, /`ready`/, /blocked/, /redirect/, /actually made/,
+            /locations the selected connector itself reports/, /Never open, fetch or search a URL with any\s+other tool/,
+            /the\s+requested URL is the source/]) {
+            assert.match(block, rule, `${name}: ${rule}`);
+        }
+    }
+    assert.equal(new Set(canonical).size, 1, "the three gate copies must be identical");
+});
+
+test("installed agent loads workflows through the skill tool, not plugin file reads", async () => {
+    // Spec §11/§6: plugin files can be unreadable; the agent body cannot inline 190 KB (30,000-character
+    // agent limit), so the installed agent must load the self-contained skills instead.
+    const agent = await fs.readFile(join(plugin, "com.github.copilot", "agents", "marketing-iq.agent.md"), "utf8");
+    const [, frontmatter, body] = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(agent);
+    assert.ok(JSON.parse(/^tools:\s*(.+)$/m.exec(frontmatter)[1]).includes("skill"), "agent must request the skill tool");
+    assert.ok(body.length <= 30000, `agent body is ${body.length} characters`);
+    const notice = body.indexOf("## Installed plugin loading");
+    assert.ok(notice > 0 && notice < body.indexOf("# Input and workflow selection"), "loading notice must precede routing");
+    for (const name of ["marketing-iq-launch-decision", "marketing-iq-field-activation", "marketing-iq-campaign-planning"]) {
+        assert.match(body.slice(notice), new RegExp(`\`${name}\``));
+    }
+    assert.doesNotMatch(body, /Read the files above|Compose by reading/);
+    assert.match(body, /Load the selected workflow skill with the skill tool, once/);
+});
+
+test("plugin builder fails closed when an installed-path rewrite is missing or ambiguous", async t => {
+    const inputs = [...runtimeAssets, "package.json", "docs/integration/MarketingIQ_Plugin.md",
+        "tools/MarketingIQ.Portable/plugin.mjs", "tools/MarketingIQ.Portable/assets.mjs"];
+    const launch = ".github/skills/marketing-iq-launch-decision/SKILL.md";
+    const build = async mutate => {
+        const temporary = await fs.mkdtemp(join(tmpdir(), "miq-generator-rewrite-"));
+        t.after(() => fs.rm(temporary, { recursive: true, force: true }));
+        for (const name of inputs) {
+            const target = join(temporary, name);
+            await fs.mkdir(dirname(target), { recursive: true });
+            await fs.copyFile(join(root, name), target);
+        }
+        const source = join(temporary, launch);
+        await fs.writeFile(source, mutate(await fs.readFile(source, "utf8")));
+        const result = spawnSync(process.execPath, [join(temporary, "tools", "MarketingIQ.Portable", "plugin.mjs")],
+            { encoding: "utf8", timeout: 20000 });
+        const written = await fs.stat(join(temporary, "plugins", "marketing-iq")).then(() => true, () => false);
+        return { ...result, written };
+    };
+    const unchanged = await build(text => text);
+    assert.equal(unchanged.status, 0, unchanged.stderr);
+    assert.equal(unchanged.written, true);
+    for (const [label, mutate] of [
+        ["missing", text => text.replace("from the workspace.", "from somewhere else.")],
+        ["ambiguous", text => text + "\nAlso read notes from the workspace.\n"]
+    ]) {
+        const result = await build(mutate);
+        assert.notEqual(result.status, 0, `${label} rewrite target must fail the build`);
+        assert.match(result.stderr, /rewrite/i, label);
+        assert.equal(result.written, false, `${label} rewrite must not leave partial plugin output`);
+    }
 });
 
 test("helpers run after relocation while consumer data stays outside plugin assets", async t => {

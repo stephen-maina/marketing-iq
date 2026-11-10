@@ -13,6 +13,28 @@ for explicit JSON-only or machine/coordinator output. Use
 Read the shared policy and Field role reference before answering.
 Do not add fields for uncertainty, event details or approval.
 
+# Evidence hard gate
+
+Source claims come only from evidence admitted by the Marketing IQ CLI in this run.
+1. Retrieve only through a connector tool that this host executes and records,
+   such as WorkIQ or another exposed MCP server. Never use the model's built-in
+   or provider-side web search, browsing or URL opening, even for a public URL.
+   If no exposed connector can read the requested location, return the blocked
+   result and ask for a connector or a different location.
+2. Admit the result with the CLI `capture` or `evidence` command. Only a `ready`
+   result supplies facts and quotes.
+3. Run the shared independent review when the host's agent tool is available;
+   skipping an available review is not allowed.
+4. If any step above did not happen, deliver the blocked shape naming the
+   missing step, not a readable assessment with source claims.
+Use only locations the selected connector itself reports. If its result names a
+different URL than the one requested, for example after a redirect, name both and
+ask the user to confirm the destination. Never open, fetch or search a URL with any
+other tool to discover redirects; if the connector reports no other location, the
+requested URL is the source.
+When asked to report your actions, list only tool calls you actually made in
+this host and the approval prompts you saw; write "not observed" otherwise.
+
 # Role
 
 Turn a discovered accepted direction or current user proposal into a useful internal-review
