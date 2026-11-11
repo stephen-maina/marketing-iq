@@ -92,3 +92,16 @@ test("CAPTURE-04 existing admission rules still decide scope, limits and adapter
     assert.equal(run(["capture", ...args(path, { "--scope-kind": null })]).code, 1, "required option");
     assert.equal(run(["capture", ...args(path), "--extra", "x"]).code, 1, "unknown option");
 });
+
+test("CAPTURE-05 a WorkIQ retrieve capture admits as SharePoint by default; fetch and explicit kinds stay strict", async t => {
+    const path = await capture(t);
+    const folder = "https://contoso-my.sharepoint.example.invalid/personal/synthetic/Documents/Hackathon";
+    const workiq = { "--adapter": "workiq", "--tool": "workiq-retrieve", "--source-url": `${folder}/brief.docx`,
+        "--scope-url": folder, "--scope-kind": "container" };
+    const admitted = run(["capture", ...args(path, workiq)]).value;
+    assert.equal(admitted.status, "ready");
+    assert.equal(admitted.sources[0].sourceKind, "sharepoint");
+    assert.equal(run(["capture", ...args(path, workiq), "--source-kind", "email"]).value.sources[0].sourceKind, "email");
+    assert.equal(run(["capture", ...args(path, workiq), "--source-kind", "document"]).code, 1, "workiq rejects document");
+    assert.equal(run(["capture", ...args(path, { ...workiq, "--tool": "workiq-fetch" })]).code, 1, "fetch is not body evidence");
+});

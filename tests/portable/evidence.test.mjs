@@ -80,6 +80,25 @@ test("whole-segment scope, origin, exact identity and resolved containing locati
     assert.equal(normalizeEvidence(resolved, "local-file").status, "blocked");
 });
 
+test("scope admitted only through a caller-stated location is disclosed, not presented as verified", () => {
+    // Rerun 6dec8b19: WorkIQ returns /_layouts/15/Doc.aspx links outside the folder path; the caller states
+    // the folder as locationUrl from a membership fetch the CLI never sees. Admission may proceed, but the
+    // result must say containment rests on that statement.
+    const resolved = clone(); resolved.sources[0].sourceUrl = "https://sample.invalid/sites/demo/Doc.aspx?sourcedoc=fixture";
+    resolved.sources[0].provenance.locationUrl = "https://sample.invalid/harbor/child";
+    const result = normalizeEvidence(resolved, "local-file");
+    assert.equal(result.status, "ready");
+    const gap = result.proofGaps.find(entry => /caller-stated location/.test(entry));
+    assert.ok(gap, JSON.stringify(result.proofGaps));
+    assert.match(gap, /https:\/\/sample\.invalid\/harbor\/child/);
+    assert.match(gap, /not verified by this check/);
+    // Control: a URL already inside the scope, or an unused location, needs no such disclosure.
+    for (const locationUrl of [null, "https://sample.invalid/harbor/child"]) {
+        const direct = clone(); direct.sources[0].provenance.locationUrl = locationUrl;
+        assert.equal(normalizeEvidence(direct, "local-file").proofGaps.some(entry => /caller-stated location/.test(entry)), false);
+    }
+});
+
 test("access and use restrictions exclude bodies while unknowns stay visible", () => {
     for (const access of ["denied", "unknown"]) {
         const value = clone(); value.sources[0].restrictions.access = access;

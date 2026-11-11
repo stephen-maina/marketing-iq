@@ -237,11 +237,15 @@ Source claims come only from evidence admitted by the Marketing IQ CLI in this r
    missing step, not a readable assessment with source claims.
 Use only locations the selected connector itself reports. If its result names a
 different URL than the one requested, for example after a redirect, name both and
-ask the user to confirm the destination. Never open, fetch or search a URL with any
+ask the user to confirm the destination. Resolving a sharing link to its folder or
+file through the connector's metadata operation is not a redirect: use that
+resolved location without asking. Never open, fetch or search a URL with any
 other tool to discover redirects; if the connector reports no other location, the
 requested URL is the source.
 When asked to report your actions, list only tool calls you actually made in
-this host and the approval prompts you saw; write "not observed" otherwise.
+this host. You cannot observe host approval prompts: they are shown to the user,
+not to you. Say so, and that the host's session record is authoritative for
+approvals; never report them as none or "not observed".
 
 # Role
 
@@ -1688,6 +1692,9 @@ example "Output too large… Saved to: <path>"), prefer
 `node <MIQ_SHARED>\scripts\portable\cli.js capture --adapter <id>
 --capture-file <that absolute path> --lines <a-b[,c-d]> --source-url <observed URL>
 --scope-url <user scope URL> --scope-kind exact|container --tool <actual tool name>`.
+For WorkIQ, `--tool` is `workiq-retrieve` (fetch metadata is not body evidence)
+and the source kind defaults to `sharepoint`; pass `--source-kind email|meeting`
+for those sources.
 View the file, then choose ascending, non-adjacent line ranges that answer the
 question, at most 20,000 characters per source. Never edit, slice, rewrite or copy
 the text yourself; the CLI reads the bytes, joins ranges with `[...]` and applies
@@ -1704,7 +1711,11 @@ adapters use the explicitly selected source scope and their actual callable
 tool schema, never WorkIQ names/capabilities. All common evidence, current-body,
 denial, confidentiality, confirmation, output and independent-review rules still
 apply. Across any adapter: at most three sources, 20,000 characters per body,
-60,000 total, six retrieval attempts, two per channel; failures count. Metadata
+60,000 total, six retrieval attempts, two per channel; failures count. One
+exception per channel: a transport failure that returned no connector response
+(for example a remote connection error or timeout) may be retried once, identically,
+without spending an attempt; disclose it. A second transport failure, and any
+denial, empty result or connector error response, counts. Metadata
 resolution/membership shares three candidate slots and six calls (two per slot).
 Retain cumulative budgets and denied scopes through clarifications or adapter
 changes; do not switch actor, provider, copy or transport to bypass them.
@@ -1773,6 +1784,13 @@ neither that ID nor a credential. Accept a different canonical origin only when
 the returned metadata explicitly maps the supplied link to that resource.
 Keep the actual resolved file/folder boundary and returned identities; metadata
 does not establish body evidence, approval or permission to distribute.
+A boundary mapped this way is the source the user supplied, not a redirect: use
+it without asking the user to confirm it, and name both URLs in the answer.
+When a retrieved item's URL is outside the boundary path (for example
+`/_layouts/15/Doc.aspx`), set `provenance.locationUrl` to the boundary only after
+a `workiq-fetch` of that item in this session returns a `parentReference` path
+inside the resolved folder; otherwise leave it null and let admission exclude it.
+The CLI discloses such admission as resting on caller-stated membership.
 Allocate one of the three metadata-candidate slots to the selected shared link
 before retrieval. That slot allows at most two metadata calls, including failed
 attempts. Its resolved item inherits the same slot and spent calls; other
@@ -2317,8 +2335,12 @@ validator or a grant of business/publication approval.
    unless a review model was explicitly configured; never list models.
 4. Supply the exact candidate JSON and, when user-facing, its candidate readable
    view, along with the current user brief and supplied/discovered
-   direction, the shared skill, selected workflow and role contracts (full text
-   or exact readable instruction paths). Include the original current admitted
+   direction. Pass the Reviewer rules block below verbatim, INLINE; do not
+   paraphrase or shorten it. Add only this answer's specifics after it: the
+   selected workflow's section names and enums and any current user constraint
+   (for example, leave unsaved). Never give the reviewer skill or plugin file
+   paths to read; the installed skills are large and reading them is outside
+   its role. Include the original current admitted
    supporting passages INLINE, with surrounding qualifications, exact IDs/URLs,
    observed location metadata and restrictions. Extract them from the current
    host response/capture before dispatch; exclude unrelated hits. Do not send
@@ -2328,7 +2350,10 @@ validator or a grant of business/publication approval.
    For a blocker, supply the actual relevant failure/empty-result ledger instead
    of nonexistent body evidence. Missing input is a gap, never a fabricated
    passage or inferred filesystem denial. An unavailable review can be repaired
-   using the remaining slot in this same cycle.
+   using the remaining slot in this same cycle. When the reviewer returns
+   unavailable because of an input gap you can supply (missing rules, evidence,
+   brief or readable view), fix that input and use the remaining slot; do not
+   deliver the unavailable result while a slot remains.
    Preserve the complete applicable task context, including explicit deferral,
    scope, supplied history and any separately authorized operation. Include
    observed tool outcomes for any operation state the candidate reports.
@@ -2337,8 +2362,7 @@ validator or a grant of business/publication approval.
    Independent review is read-only: it cannot authorize or perform a save.
 5. Instruct the reviewer: "Return only an object with status (pass, fail or
    unavailable) and findings (an array of objects with path, reason, correction).
-   Read the supplied shared, workflow and role contracts before reviewing the
-   candidate against them and the evidence.
+   Review the candidate against the supplied inline rules and the evidence.
    Check complete claim support, quote occurrence, identity/folder scope,
    confidentiality, temporal truth, direction provenance and exact output shape.
    When a readable view is supplied, also check its fidelity to the JSON,
@@ -2357,9 +2381,8 @@ validator or a grant of business/publication approval.
    Keep generic guardrails in proofGaps rather than treating examples as
    assertions the user requested. Missing required review context is unavailable;
    an affirmative unsupported claim of a completed operation is a violation.
-   Do not retrieve, execute commands, write, accept decisions or invoke agents.
-   Use the supplied original inline evidence; read only supplied instruction
-   paths when necessary. If required
+   Do not retrieve, read files, execute commands, write, accept decisions or
+   invoke agents. Use only the supplied inline rules and evidence. If required
    review input is missing, return unavailable with that gap, not pass.
    Pass requires no findings; fail requires a supported finding. No hidden
    reasoning or revised marketing answer."
@@ -2404,6 +2427,31 @@ validator or a grant of business/publication approval.
    `invocations` in executionTrace. A trace is a disclosure, not execution proof.
    Retaining, splicing and comparing here are model instructions, not an
    installed deterministic final-response hook or a guarantee of host delivery.
+
+### Reviewer rules (verbatim)
+
+```text
+- The canonical object has exactly eleven fields: useCase, status,
+  directionStatus, validationMode, summary, sections, facts, sources, proofGaps,
+  rejectedClaims, executionTrace. A blocked answer has empty sections and facts.
+- Every source-based assertion needs supporting factIds from the supplied
+  admitted passages. Each quote occurs exactly in its passage, and a quote does
+  not support attributes it does not state. Proposals and gaps stay labelled.
+- Unknown evidence is a gap: never a failed gate, approval or launch authorization.
+- Sources stay inside the user's scope. A "caller-stated location" proof gap,
+  sensitivity labels and use restrictions must remain disclosed.
+- Review status appears only in proofGaps, executionTrace and the matching
+  readable disclosure, never in summary, sections or facts.
+- A disclosed not-run mechanical preflight is not itself a violation and does
+  not make semantic review unavailable. A semantic pass does not remove that gap.
+- The readable view agrees with the JSON, keeps material gaps and restrictions,
+  and adds no claims.
+- The action report lists only tool calls actually made. Host approval prompts
+  are not visible to the agent; the report must say so rather than "none".
+- Return unavailable only when required input is missing (candidate, readable
+  view, admitted passages or brief), naming what is missing. Otherwise return
+  pass with no findings, or fail with concrete findings.
+```
 
 Example: answer 1 passes after two reviews with SharePoint at 2/2. The user then
 asks for stronger claims. Answer 2 has its own two-slot review cycle, using the
@@ -2761,6 +2809,9 @@ callable schema; do not invent a `create` tool because these instructions name i
    native file tool when no longer needed. Never delete a pre-existing capture
    or exported result. If removal is unavailable, disclose the retained session
    transport; do not promise zero host retention or silently store it elsewhere.
+   Staging and removing these files is processing, not saving: a user's
+   leave-unsaved choice applies to the diagnostic export (step 5) and accepted
+   direction, so a leave-unsaved choice does not skip preflight.
 
 ## Balanced cases
 

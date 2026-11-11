@@ -83,7 +83,10 @@ try {
             const admitted = normalizeEvidence(captureHandoff(utf8(capture.bytes), capture.modifiedMs, Date.now(), {
                 adapter: arg("--adapter"), lines: arg("--lines"), sourceUrl: arg("--source-url"),
                 scopeUrl: arg("--scope-url"), scopeKind: arg("--scope-kind"), tool: arg("--tool"),
-                sourceKind: args.has("--source-kind") ? arg("--source-kind") : "document"
+                // WorkIQ admits only sharepoint/email/meeting bodies; an https capture is a SharePoint
+                // document unless the caller names email or meeting explicitly.
+                sourceKind: args.has("--source-kind") ? arg("--source-kind") :
+                    arg("--adapter") === "workiq" ? "sharepoint" : "document"
             }), arg("--adapter"));
             admitted.proofGaps.push(`${arg("--source-url")}: body is line ranges ${arg("--lines")} of a host-captured ` +
                 "tool result selected by the caller; the selection is not an independent review.");

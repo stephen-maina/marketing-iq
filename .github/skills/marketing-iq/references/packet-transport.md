@@ -84,6 +84,9 @@ callable schema; do not invent a `create` tool because these instructions name i
    native file tool when no longer needed. Never delete a pre-existing capture
    or exported result. If removal is unavailable, disclose the retained session
    transport; do not promise zero host retention or silently store it elsewhere.
+   Staging and removing these files is processing, not saving: a user's
+   leave-unsaved choice applies to the diagnostic export (step 5) and accepted
+   direction, so a leave-unsaved choice does not skip preflight.
 
 ## Balanced cases
 

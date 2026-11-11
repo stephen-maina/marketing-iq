@@ -587,3 +587,171 @@ non-WorkIQ connector (here `microsoft-learn`) is "not exposed" to it. Options:
 a client-owned profile listing that server (`client-profiles.md`, option C), or
 a reviewed decision to add specific servers. The `marketing-iq-marketer` agent
 still reads plugin files and was not changed.
+
+### SharePoint shared-folder trial (2026-11-10): precondition not met
+
+Before the run, `capture` gained an adapter-aware source kind: without it, a
+WorkIQ capture would have been rejected with a bare `INVALID_REQUEST` even after
+a successful retrieval (CAPTURE-05). The shared link's token is not recorded here.
+
+The run used interactive Copilot CLI 1.0.108, `gpt-6.1-sol` and
+`--agent marketing-iq:marketing-iq` from a fresh folder (session `427d1437…`).
+
+**Precondition failed: no `workiq` server was connected.** The session's startup
+log lists 11 MCP servers and none is WorkIQ. Earlier sessions (latest 2026-10-27)
+called `workiq-retrieve` through a user-level HTTP server named `workiq`. The
+current `~/.copilot/mcp-config.json` does not define it and was last modified
+before those sessions. The server comes from the `agency` launcher, whose
+default MCP servers include `workiq`; the trial was started with plain `copilot`.
+So this run tested
+no-connector behaviour; **it says nothing about whether WorkIQ can read this folder.**
+
+| Criterion | Result |
+|---|---|
+| 1. Activation through `skill`, no plugin file reads | Pass |
+| 2. Shared-link resolution | Not reached: no tool exposed |
+| 3. Folder-bounded retrieval | Not reached: no tool exposed |
+| 4b. Blocked answer naming the step | Pass; states authentication and permissions were not tested |
+| 5. No host or provider web use | Pass: 0 host calls, 0 provider items |
+
+Host calls were `skill`, the `context` helper and the independent review
+(`pass`), at 27.96 AI units. The action report matched the session record.
+A no-tool probe through `agency copilot -- … --agent marketing-iq:marketing-iq`
+confirmed the packaged agent sees `workiq-retrieve` and `workiq-fetch`.
+Remaining: rerun through `agency`; the prompt and criteria stay unchanged.
+
+### SharePoint rerun through `agency` (2026-11-11): WorkIQ reads the folder
+
+Launcher `agency copilot --no-sandbox -- <same Copilot flags>`, Copilot CLI
+1.0.109, `gpt-6.1-sol`, session `6dec8b19…`. The brief and source were the same
+text as before, entered through the agent's intake form after `/marketing-iq`.
+The user enabled allow-all permissions at the start, so no tool approval was gated.
+
+**WorkIQ can act as the connector for a shared SharePoint folder.** One
+`workiq-fetch` of `/shares/u!<complete URL>/driveItem` returned the folder
+(`microsoft-my…/Documents/Hackathon`, 21 children). The canonical host came from
+that metadata, not from the link. Both `workiq-retrieve` calls were scoped
+structurally with `OneDriveAndSharePoint.items_by_url` = that folder. The first
+failed with a remote connection error and the identical retry returned two files.
+
+| Criterion | Result |
+|---|---|
+| 1. Activation through `skill`, no plugin file reads | Partial: the main agent read none; the reviewer subagent read both plugin `SKILL.md` files (~190 KB each) because the review prompt told it to |
+| 2. Shared-link resolution | Pass: 1 metadata call, mapping from returned metadata |
+| 3. Folder-bounded retrieval | Pass: `items_by_url` = resolved folder; no parent or tenant search |
+| 4a. Admission, review, quotes | Pass: `evidence --adapter workiq` → `ready`; both bodies match the retrieval text (whitespace-normalised); mechanical packet check and subagent review `pass` |
+| 5. No host or provider web use | Pass: 0 host web calls; only provider item was WorkIQ tool search |
+
+The predicted scope risk occurred and was handled: retrieval returned
+`/_layouts/15/Doc.aspx` URLs outside the folder path. A second `workiq-fetch`
+returned both files' parent as `root:/Hackathon`, and the handoff set
+`provenance.locationUrl` to the folder. The action report matched the session
+record. Cost was 120.28 AI units, with one compaction.
+
+Findings to act on:
+- **`locationUrl` is trusted as asserted.** It was correct here, backed by the
+  membership fetch, but `evidence` cannot check it. A model could name any
+  in-scope folder.
+- **A transport error spent half the retrieval budget.** "Failures count" turned
+  a connection error into one effective search of a 21-item folder. The answer
+  correctly called the inventory non-exhaustive.
+- **The review prompt pointed the reviewer at plugin files.** Trial 1 passed the
+  contracts inline. Without the sandbox, the instruction alone did not hold.
+- **The resolved-folder confirmation was an extra question.** The rules accept a
+  metadata-returned mapping without asking.
+- `observedAt` was the processing time (11:04:17), not the retrieval time (11:03:16).
+
+Changes after the rerun (`npm test` 114/114, `test:plugin` 18/18, `test:package` 1/1):
+- `evidence` now adds a proof gap when a container-scope source is in scope only
+  through `locationUrl` ("caller-stated location … not verified by this check").
+  This discloses the limit; it does not verify membership, which would need the
+  fetch result itself to pass through the CLI.
+- `connector-workflow.md`: set `locationUrl` only after a `workiq-fetch` in this
+  session returns a parent inside the resolved folder; a metadata-resolved sharing
+  link is used without a confirmation question.
+- The three skills' redirect rule now excludes sharing-link resolution.
+- Retrieval budget: one identical retry per channel after a transport failure
+  with no connector response does not spend an attempt; anything else counts.
+- `independent-review.md`: rules go to the reviewer inline; no skill or plugin
+  paths, and the reviewer reads no files.
+- Not changed: `observedAt` timing (a minute's difference inside the six-hour
+  window). These are untested in a live run.
+
+### Trial 3 (2026-11-11): fixes hold; review and action report regress
+
+Same launcher and prompt, pasted as the first message, from a fresh folder
+(session `9a3b6cbb…`). Allow-all was switched off before the prompt; the user
+approved two shell prompts (the `context` and `evidence` helper runs).
+
+| Criterion | Result |
+|---|---|
+| 1. Skill activation, no plugin file reads | Pass, including the reviewer (0 tool calls) |
+| 2. Shared-link resolution | Pass: 1 metadata call |
+| 3. Folder-bounded retrieval | Pass: 2 `items_by_url` searches |
+| 4a. Admission, review, quotes | Partial: `ready`, bodies verbatim; preflight not run and review `unavailable` |
+| 5. No web use | Pass |
+| 6. No folder confirmation | Pass |
+| 7. Reviewer reads nothing, rules inline | Pass (37K tokens, down from 191K) |
+| 8. Caller-stated location disclosed | Pass: proof gap on both sources, carried into the answer |
+| 9. Transport retry | Not applicable: no failure |
+| 10. Action report matches record | **Fail**: "Approval prompts: not observed" while the record shows 2 approved prompts |
+
+Cost 55.21 AI units (120.28 in the rerun). A third hit (IDC infobrief) was left
+out because its membership check would need a fourth metadata slot; the answer
+says so.
+
+New findings:
+- **The agent cannot see host approval prompts**, so "not observed" is a false
+  negative. The instruction asks for something the model has no access to.
+- **The condensed inline rules lost a qualifier.** The agent's summary said
+  "missing preflight cannot become pass via semantic review"; the reviewer read
+  that as making review impossible and returned `unavailable`. The full rule says
+  a disclosed missing preflight is not itself a violation.
+- **Preflight was skipped to honour "unsaved".** Session staging for the packet
+  check is not saving, but the agent treated it as such; the rerun staged it and passed.
+- **The second review slot was not used** to repair the `unavailable` result.
+
+The approval finding repeats the earlier web-source trial (criterion 6 above),
+which judged "not observed" honest and the criterion mis-specified but changed no
+instruction. Changes after trial 3 (`npm test` 118/118 including new guards
+TF-01–TF-04, `test:plugin` 18/18, `test:package` 1/1):
+- The three skills' action-report rule: list tool calls made; state that host
+  approval prompts are not visible to the agent and the host session record is
+  authoritative; never report them as none or "not observed".
+- `independent-review.md`: a fixed "Reviewer rules (verbatim)" block, passed
+  unchanged, replaces the agent-written rule summary. It keeps the qualifier that
+  a disclosed not-run preflight is not a violation and limits `unavailable` to
+  missing input. An `unavailable` caused by a fixable input gap uses the
+  remaining slot.
+- `packet-transport.md`: staging and removing session files is processing, not
+  saving; a leave-unsaved choice does not skip preflight.
+- The guards pin text only; model compliance is untested until a live run.
+
+### Trial 4 (2026-11-11): all criteria pass
+
+Same launcher, flags and prompt, fresh folder, allow-all off (session
+`f2e246e1…`). The user approved four shell prompts: context and link encoding,
+evidence admission, packet check, and cleanup.
+
+| Criterion | Result |
+|---|---|
+| 1. Skill activation, no plugin file reads | Pass, main agent and reviewer |
+| 2. Shared-link resolution | Pass: 1 metadata call |
+| 3. Folder-bounded retrieval | Pass: 2 `items_by_url` searches |
+| 4a. Admission, review, quotes | Pass: `ready`, both bodies verbatim |
+| 5. No web use | Pass |
+| 6. No folder confirmation | Pass |
+| 7/12. Reviewer inline, no reads, rule block verbatim | Pass: block present unchanged; 0 tool calls, 37.7K tokens |
+| 8. Caller-stated location disclosed | Pass: proof gap on both sources and in the answer |
+| 9. Transport retry | Not applicable: no failure |
+| 10'. Action report | Pass: call counts match the record; approvals reported as not visible, session record authoritative |
+| 11. Preflight despite "unsaved" | Pass: packet staged, `Test-ReviewPacket` `pass`, both staging files removed and absence checked |
+| 13. Reviewer verdict | Pass on the first slot |
+
+Cost 90.25 AI units. A third hit (IDC infobrief) was named and left out because
+all three metadata slots were spent; its contents were not used.
+
+What this does and does not establish: one run of one model on one folder
+followed the instructions end to end. It does not show the behaviour is stable
+across repeated runs or other models, and the answer is only as complete as two
+bounded searches of a 21-item folder allow.

@@ -43,6 +43,9 @@ example "Output too large… Saved to: <path>"), prefer
 `node .github\skills\marketing-iq\scripts\portable\cli.js capture --adapter <id>
 --capture-file <that absolute path> --lines <a-b[,c-d]> --source-url <observed URL>
 --scope-url <user scope URL> --scope-kind exact|container --tool <actual tool name>`.
+For WorkIQ, `--tool` is `workiq-retrieve` (fetch metadata is not body evidence)
+and the source kind defaults to `sharepoint`; pass `--source-kind email|meeting`
+for those sources.
 View the file, then choose ascending, non-adjacent line ranges that answer the
 question, at most 20,000 characters per source. Never edit, slice, rewrite or copy
 the text yourself; the CLI reads the bytes, joins ranges with `[...]` and applies
@@ -59,7 +62,11 @@ adapters use the explicitly selected source scope and their actual callable
 tool schema, never WorkIQ names/capabilities. All common evidence, current-body,
 denial, confidentiality, confirmation, output and independent-review rules still
 apply. Across any adapter: at most three sources, 20,000 characters per body,
-60,000 total, six retrieval attempts, two per channel; failures count. Metadata
+60,000 total, six retrieval attempts, two per channel; failures count. One
+exception per channel: a transport failure that returned no connector response
+(for example a remote connection error or timeout) may be retried once, identically,
+without spending an attempt; disclose it. A second transport failure, and any
+denial, empty result or connector error response, counts. Metadata
 resolution/membership shares three candidate slots and six calls (two per slot).
 Retain cumulative budgets and denied scopes through clarifications or adapter
 changes; do not switch actor, provider, copy or transport to bypass them.
@@ -128,6 +135,13 @@ neither that ID nor a credential. Accept a different canonical origin only when
 the returned metadata explicitly maps the supplied link to that resource.
 Keep the actual resolved file/folder boundary and returned identities; metadata
 does not establish body evidence, approval or permission to distribute.
+A boundary mapped this way is the source the user supplied, not a redirect: use
+it without asking the user to confirm it, and name both URLs in the answer.
+When a retrieved item's URL is outside the boundary path (for example
+`/_layouts/15/Doc.aspx`), set `provenance.locationUrl` to the boundary only after
+a `workiq-fetch` of that item in this session returns a `parentReference` path
+inside the resolved folder; otherwise leave it null and let admission exclude it.
+The CLI discloses such admission as resting on caller-stated membership.
 Allocate one of the three metadata-candidate slots to the selected shared link
 before retrieval. That slot allows at most two metadata calls, including failed
 attempts. Its resolved item inherits the same slot and spent calls; other

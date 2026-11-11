@@ -75,8 +75,12 @@ validator or a grant of business/publication approval.
    unless a review model was explicitly configured; never list models.
 4. Supply the exact candidate JSON and, when user-facing, its candidate readable
    view, along with the current user brief and supplied/discovered
-   direction, the shared skill, selected workflow and role contracts (full text
-   or exact readable instruction paths). Include the original current admitted
+   direction. Pass the Reviewer rules block below verbatim, INLINE; do not
+   paraphrase or shorten it. Add only this answer's specifics after it: the
+   selected workflow's section names and enums and any current user constraint
+   (for example, leave unsaved). Never give the reviewer skill or plugin file
+   paths to read; the installed skills are large and reading them is outside
+   its role. Include the original current admitted
    supporting passages INLINE, with surrounding qualifications, exact IDs/URLs,
    observed location metadata and restrictions. Extract them from the current
    host response/capture before dispatch; exclude unrelated hits. Do not send
@@ -86,7 +90,10 @@ validator or a grant of business/publication approval.
    For a blocker, supply the actual relevant failure/empty-result ledger instead
    of nonexistent body evidence. Missing input is a gap, never a fabricated
    passage or inferred filesystem denial. An unavailable review can be repaired
-   using the remaining slot in this same cycle.
+   using the remaining slot in this same cycle. When the reviewer returns
+   unavailable because of an input gap you can supply (missing rules, evidence,
+   brief or readable view), fix that input and use the remaining slot; do not
+   deliver the unavailable result while a slot remains.
    Preserve the complete applicable task context, including explicit deferral,
    scope, supplied history and any separately authorized operation. Include
    observed tool outcomes for any operation state the candidate reports.
@@ -95,8 +102,7 @@ validator or a grant of business/publication approval.
    Independent review is read-only: it cannot authorize or perform a save.
 5. Instruct the reviewer: "Return only an object with status (pass, fail or
    unavailable) and findings (an array of objects with path, reason, correction).
-   Read the supplied shared, workflow and role contracts before reviewing the
-   candidate against them and the evidence.
+   Review the candidate against the supplied inline rules and the evidence.
    Check complete claim support, quote occurrence, identity/folder scope,
    confidentiality, temporal truth, direction provenance and exact output shape.
    When a readable view is supplied, also check its fidelity to the JSON,
@@ -115,9 +121,8 @@ validator or a grant of business/publication approval.
    Keep generic guardrails in proofGaps rather than treating examples as
    assertions the user requested. Missing required review context is unavailable;
    an affirmative unsupported claim of a completed operation is a violation.
-   Do not retrieve, execute commands, write, accept decisions or invoke agents.
-   Use the supplied original inline evidence; read only supplied instruction
-   paths when necessary. If required
+   Do not retrieve, read files, execute commands, write, accept decisions or
+   invoke agents. Use only the supplied inline rules and evidence. If required
    review input is missing, return unavailable with that gap, not pass.
    Pass requires no findings; fail requires a supported finding. No hidden
    reasoning or revised marketing answer."
@@ -162,6 +167,31 @@ validator or a grant of business/publication approval.
    `invocations` in executionTrace. A trace is a disclosure, not execution proof.
    Retaining, splicing and comparing here are model instructions, not an
    installed deterministic final-response hook or a guarantee of host delivery.
+
+### Reviewer rules (verbatim)
+
+```text
+- The canonical object has exactly eleven fields: useCase, status,
+  directionStatus, validationMode, summary, sections, facts, sources, proofGaps,
+  rejectedClaims, executionTrace. A blocked answer has empty sections and facts.
+- Every source-based assertion needs supporting factIds from the supplied
+  admitted passages. Each quote occurs exactly in its passage, and a quote does
+  not support attributes it does not state. Proposals and gaps stay labelled.
+- Unknown evidence is a gap: never a failed gate, approval or launch authorization.
+- Sources stay inside the user's scope. A "caller-stated location" proof gap,
+  sensitivity labels and use restrictions must remain disclosed.
+- Review status appears only in proofGaps, executionTrace and the matching
+  readable disclosure, never in summary, sections or facts.
+- A disclosed not-run mechanical preflight is not itself a violation and does
+  not make semantic review unavailable. A semantic pass does not remove that gap.
+- The readable view agrees with the JSON, keeps material gaps and restrictions,
+  and adds no claims.
+- The action report lists only tool calls actually made. Host approval prompts
+  are not visible to the agent; the report must say so rather than "none".
+- Return unavailable only when required input is missing (candidate, readable
+  view, admitted passages or brief), naming what is missing. Otherwise return
+  pass with no findings, or fail with concrete findings.
+```
 
 Example: answer 1 passes after two reviews with SharePoint at 2/2. The user then
 asks for stronger claims. Answer 2 has its own two-slot review cycle, using the

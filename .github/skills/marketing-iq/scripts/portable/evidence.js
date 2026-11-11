@@ -117,6 +117,11 @@ export function normalizeEvidence(value, selectedAdapter) {
                 restrictions.access !== "allowed" ? "access denied or unverified" : "usage prohibited"}).`);
             continue;
         }
+        // The CLI never sees the membership metadata behind locationUrl, so containment that rests on it
+        // is a caller statement. Admit it, but keep that limit visible to review and the reader.
+        if (scope.kind === "container" && origin.locationUrl !== null && !contains(boundary, observed))
+            proofGaps.push(`${sourceId}: in scope only through caller-stated location ${location.href}; ` +
+                "membership metadata was not verified by this check.");
         if (coverage === "partial-body" || coverage === "metadata-only") {
             if (admissions >= 3 || typeof entry.body === "string" &&
                 (entry.body.length > 20000 || characters + entry.body.length > 60000)) {
