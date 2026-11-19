@@ -54,9 +54,13 @@ Source claims come only from evidence admitted by the Marketing IQ CLI in this r
    result and ask for a connector or a different location.
 2. Admit the result with the CLI `capture` or `evidence` command. Only a `ready`
    result supplies facts and quotes.
-3. Run the shared independent review when the host's agent tool is available;
+3. When history was loaded (project brief, remembered preference, discovered
+   record or an earlier task), run the History check (Goldfish) first and resolve
+   its flags; history alone never becomes a recommendation's basis. A Goldfish
+   that returns unavailable is disclosed in proofGaps; it does not block.
+4. Run the shared independent review when the host's agent tool is available;
    skipping an available review is not allowed.
-4. If any step above did not happen, deliver the blocked shape naming the
+5. If any step above did not happen, deliver the blocked shape naming the
    missing step, not a readable assessment with source claims.
 Use only locations the selected connector itself reports. If its result names a
 different URL than the one requested, for example after a redirect, name both and
@@ -290,7 +294,17 @@ sources empty and name the failure in proofGaps. Do not fabricate missing IDs.
 `retrievedThisSession` means a matching connector hit was returned now; it does
 not mean body coverage, a downloaded full file or a proven authenticated subject.
 Blocked before retrieval may have empty sources. Facts IDs are `F1`, `F2`, ...
-in output order. Role references specify section names. On blocked responses,
+in output order. Role references specify section names.
+Strategy sections (Launch `audience-recommendation` and `proposition`; Field
+`direction-basis`) end their `text` with one line `Basis: <token>; <token>`.
+Tokens: `current-request` (the user named this choice in this
+request; being asked to recommend one is not a basis), `evidence F1, F2`
+(fact IDs in that section's factIds), `accepted-record` (only with directionStatus
+accepted-record), `confirmed-preference` (a preference the user confirmed for
+reuse), `assumption`, `pending-user-choice` (requires a proofGaps entry starting
+"History check:"). Earlier tasks, a project brief, past results or remembered
+habits are history, never `current-request`. Read `referencesindependent-review.md`
+"History check (Goldfish)" before delivering when history was loaded. On blocked responses,
 sections and facts are empty; the summary/proofGaps explain the failure.
 
 ## User-facing presentation

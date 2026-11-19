@@ -7,6 +7,7 @@ sections: `product-truth`, `planning-fit`, `market-evidence`,
 `audience-recommendation`, `proposition`, `next-evidence`.
 Every Launch section, including `proposition`, MUST have `kind: "assessment"`.
 `kind: "draft-copy"` is invalid for this route, even for a proposed proposition.
+`audience-recommendation` and `proposition` end with the shared `Basis:` line.
 A section without supporting evidence says what is missing, not what a source
 "must mean." A useful conditional recommendation is allowed; false precision is not.
 

@@ -49,6 +49,14 @@ const SECTION_RULES = {
     ],
 };
 
+// Strategy sections end with "Basis: <token>; <token>" so a choice carried over from history is labelled,
+// not presented as current support (Elephant-Goldfish history check).
+const BASIS_SECTIONS = new Map([
+    ["launch-decision", new Set(["audience-recommendation", "proposition"])],
+    ["field-activation", new Set(["direction-basis"])],
+]);
+const BASIS_TOKENS = new Set(["current-request", "evidence", "accepted-record", "confirmed-preference", "assumption", "pending-user-choice"]);
+
 const ENUMS = {
     useCase: new Set(["launch-decision", "field-activation"]),
     status: new Set(["draft", "blocked"]),
@@ -430,6 +438,51 @@ function validateSections(result, candidate, factMap) {
     });
 }
 
+function validateStrategyBasis(result, candidate) {
+    const required = BASIS_SECTIONS.get(candidate.useCase);
+    if (!required || candidate.status !== "draft" || !Array.isArray(candidate.sections)) return;
+    candidate.sections.forEach((section, index) => {
+        if (!isPlainObject(section) || !required.has(section.name) || typeof section.text !== "string") return;
+        const path = `candidate.sections[${index}].text`;
+        const lines = section.text.split(/\r?\n/u).filter(line => line.trim().length > 0);
+        const match = /^Basis:\s*(.*)$/u.exec(lines.at(-1) ?? "");
+        if (!match) {
+            pushFinding(result, path, "strategy section must end with a Basis: line");
+            return;
+        }
+        const tokens = match[1].split(";").map(token => token.trim()).filter(Boolean);
+        if (tokens.length === 0) {
+            pushFinding(result, path, "Basis: line must name at least one basis");
+            return;
+        }
+        const seen = new Set();
+        const factIds = new Set(Array.isArray(section.factIds) ? section.factIds : []);
+        for (const token of tokens) {
+            const [kind, ...rest] = token.split(/\s+/u);
+            if (!BASIS_TOKENS.has(kind) || seen.has(kind)) {
+                pushFinding(result, path, `Basis: token must be one unique value of: ${[...BASIS_TOKENS].join(", ")}`);
+                continue;
+            }
+            seen.add(kind);
+            if (kind === "evidence") {
+                const ids = rest.join(" ").split(",").map(id => id.trim()).filter(Boolean);
+                if (ids.length === 0 || ids.some(id => !factIds.has(id))) {
+                    pushFinding(result, path, "Basis: evidence must cite fact ids listed in this section's factIds");
+                }
+            } else if (rest.length > 0) {
+                pushFinding(result, path, `Basis: ${kind} takes no arguments`);
+            }
+            if (kind === "accepted-record" && candidate.directionStatus !== "accepted-record") {
+                pushFinding(result, path, "Basis: accepted-record requires directionStatus accepted-record");
+            }
+            if (kind === "pending-user-choice" && !(Array.isArray(candidate.proofGaps) &&
+                candidate.proofGaps.some(gap => typeof gap === "string" && gap.startsWith("History check:")))) {
+                pushFinding(result, path, "Basis: pending-user-choice requires a proofGaps entry starting \"History check:\"");
+            }
+        }
+    });
+}
+
 function validateCandidate(result, candidate, evidenceMap) {
     if (!exactKeys(candidate, CANDIDATE_KEYS)) {
         pushFinding(result, "candidate", "candidate must contain only canonical shared-answer fields");
@@ -455,6 +508,7 @@ function validateCandidate(result, candidate, evidenceMap) {
     validateSectionNamesAndKinds(result, candidate);
     const factMap = validateFacts(result, candidate, sourceMap, evidenceMap);
     validateSections(result, candidate, factMap);
+    validateStrategyBasis(result, candidate);
     return { factMap, sourceMap };
 }
 

@@ -23,9 +23,13 @@ Source claims come only from evidence admitted by the Marketing IQ CLI in this r
    result and ask for a connector or a different location.
 2. Admit the result with the CLI `capture` or `evidence` command. Only a `ready`
    result supplies facts and quotes.
-3. Run the shared independent review when the host's agent tool is available;
+3. When history was loaded (project brief, remembered preference, discovered
+   record or an earlier task), run the History check (Goldfish) first and resolve
+   its flags; history alone never becomes a recommendation's basis. A Goldfish
+   that returns unavailable is disclosed in proofGaps; it does not block.
+4. Run the shared independent review when the host's agent tool is available;
    skipping an available review is not allowed.
-4. If any step above did not happen, deliver the blocked shape naming the
+5. If any step above did not happen, deliver the blocked shape naming the
    missing step, not a readable assessment with source claims.
 Use only locations the selected connector itself reports. If its result names a
 different URL than the one requested, for example after a redirect, name both and

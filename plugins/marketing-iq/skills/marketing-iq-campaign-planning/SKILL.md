@@ -231,9 +231,13 @@ Source claims come only from evidence admitted by the Marketing IQ CLI in this r
    result and ask for a connector or a different location.
 2. Admit the result with the CLI `capture` or `evidence` command. Only a `ready`
    result supplies facts and quotes.
-3. Run the shared independent review when the host's agent tool is available;
+3. When history was loaded (project brief, remembered preference, discovered
+   record or an earlier task), run the History check (Goldfish) first and resolve
+   its flags; history alone never becomes a recommendation's basis. A Goldfish
+   that returns unavailable is disclosed in proofGaps; it does not block.
+4. Run the shared independent review when the host's agent tool is available;
    skipping an available review is not allowed.
-4. If any step above did not happen, deliver the blocked shape naming the
+5. If any step above did not happen, deliver the blocked shape naming the
    missing step, not a readable assessment with source claims.
 Use only locations the selected connector itself reports. If its result names a
 different URL than the one requested, for example after a redirect, name both and
@@ -488,7 +492,17 @@ sources empty and name the failure in proofGaps. Do not fabricate missing IDs.
 `retrievedThisSession` means a matching connector hit was returned now; it does
 not mean body coverage, a downloaded full file or a proven authenticated subject.
 Blocked before retrieval may have empty sources. Facts IDs are `F1`, `F2`, ...
-in output order. Role references specify section names. On blocked responses,
+in output order. Role references specify section names.
+Strategy sections (Launch `audience-recommendation` and `proposition`; Field
+`direction-basis`) end their `text` with one line `Basis: <token>; <token>`.
+Tokens: `current-request` (the user named this choice in this
+request; being asked to recommend one is not a basis), `evidence F1, F2`
+(fact IDs in that section's factIds), `accepted-record` (only with directionStatus
+accepted-record), `confirmed-preference` (a preference the user confirmed for
+reuse), `assumption`, `pending-user-choice` (requires a proofGaps entry starting
+"History check:"). Earlier tasks, a project brief, past results or remembered
+habits are history, never `current-request`. Read `referencesindependent-review.md`
+"History check (Goldfish)" before delivering when history was loaded. On blocked responses,
 sections and facts are empty; the summary/proofGaps explain the failure.
 
 ## User-facing presentation
@@ -1786,6 +1800,9 @@ Keep the actual resolved file/folder boundary and returned identities; metadata
 does not establish body evidence, approval or permission to distribute.
 A boundary mapped this way is the source the user supplied, not a redirect: use
 it without asking the user to confirm it, and name both URLs in the answer.
+Once a folder is resolved, pass that folder in `items_by_url` on every `workiq-retrieve` call
+(capability `OneDriveAndSharePoint`). Naming the folder only in the query text is not a boundary:
+an unbounded search can return files from elsewhere.
 When a retrieved item's URL is outside the boundary path (for example
 `/_layouts/15/Doc.aspx`), set `provenance.locationUrl` to the boundary only after
 a `workiq-fetch` of that item in this session returns a `parentReference` path
@@ -2446,12 +2463,77 @@ validator or a grant of business/publication approval.
   not make semantic review unavailable. A semantic pass does not remove that gap.
 - The readable view agrees with the JSON, keeps material gaps and restrictions,
   and adds no claims.
-- The action report lists only tool calls actually made. Host approval prompts
-  are not visible to the agent; the report must say so rather than "none".
+- Each strategy section's Basis: line is truthful: current-request only for a
+  choice the user named in the current request (being asked to recommend one is
+  not a basis), evidence only for cited facts that support the
+  choice, accepted-record only for the supplied direction record.
+- When the user asked for an action report, it lists only tool calls actually
+  made, and says host approval prompts are not visible to the agent rather
+  than "none". No action report requested is not a violation.
 - Return unavailable only when required input is missing (candidate, readable
   view, admitted passages or brief), naming what is missing. Otherwise return
   pass with no findings, or fail with concrete findings.
 ```
+
+## History check (Goldfish)
+
+Goal: stop a strategy choice (audience, proposition, channel, format, timing,
+region) from being adopted only because the user or an earlier answer chose it
+before. The drafting context is the Elephant: it holds history. The Goldfish is
+a fresh reviewer that never sees that history, so a choice resting on history
+has no visible basis for it.
+
+Trigger: run once per answer cycle when history was loaded for this answer: a
+project brief, a remembered preference, a discovered accepted record, or an
+earlier task or answer in this conversation. Otherwise record
+`history-check:not-run:no-history` in executionTrace. It is separate from the
+independent review and does not use its two slots.
+
+Order: draft, packet preflight, History check, resolve, packet preflight again
+if changed, then the unchanged independent review of the final pair.
+
+Give the Goldfish ONLY, inline: the current user request text verbatim, the
+admitted evidence passages, the candidate JSON, and the Goldfish rules block
+below verbatim. Never give it the project brief, preferences, discovered
+records, direction context, earlier turns or tasks, or file paths. Invoke the
+host `task` tool with `agent_type: general-purpose`, `mode: sync`, fresh context.
+
+### Goldfish rules (verbatim)
+
+```text
+You see only the current request, admitted evidence and a candidate answer.
+Do not read files, call tools or ask for more context.
+List every strategy choice in the candidate: audience, proposition, channel,
+format, timing, region, and any narrowing of options.
+Flag a choice when its Basis: line or text relies on something you cannot see
+in the current request or the cited evidence, or when it narrows options
+without a stated reason. current-request covers only a choice the user named in
+the request; being asked to recommend or choose is not a basis for the choice
+made, so flag current-request on a choice the request does not name.
+accepted-record and confirmed-preference bases are
+outside your view: flag them as "history basis" so the author can confirm them.
+Do not judge whether a strategy is good; judge only whether its basis is visible.
+Return only {"status":"pass|flags|unavailable","flags":[{"path":"...",
+"choice":"...","reason":"..."}]}. pass means no flags; unavailable only when
+the request, evidence or candidate is missing.
+```
+
+Resolve each flag (the Elephant proposes; the user decides history questions):
+- CONTEST only with something checkable now: a quote from the current request,
+  a fact ID, or an accepted record that `decisions discover` returned for this
+  scope and that fits this activity. "The user usually does this", a brief's
+  old objective or an earlier answer is not a contest.
+- ESCALATE when the only basis is history: keep the choice out of the
+  recommendation, set its basis to `pending-user-choice`, add a proofGaps entry
+  "History check: <choice> came from <history kind>; confirm it applies here",
+  and ask the user in the readable view.
+- PROPOSE FIX: widen to the options the evidence supports with trade-offs, or
+  relabel the basis truthfully (for example `assumption`).
+Record `history-check:<pass|flags=N,contested=N,escalated=N,fixed=N|unavailable>`
+in executionTrace. An unavailable Goldfish is disclosed in proofGaps, never a pass.
+Positive: the user says "webinar for CIOs again" in this request; basis
+current-request, no flag. Negative: the brief says CIO webinars and the request
+asks for a Field plan for finance leads; a webinar choice is escalated, not assumed.
 
 Example: answer 1 passes after two reviews with SharePoint at 2/2. The user then
 asks for stronger claims. Answer 2 has its own two-slot review cycle, using the
@@ -2735,6 +2817,11 @@ permission to copy sources, persist evidence packs or write executable files.
 Source restrictions must permit this session-local processing. Do not stage
 credentials, excluded content, whole connector responses or transcripts.
 
+Native writers by host: Copilot CLI `apply_patch`; Claude Code `Write`. Only a
+writer in your own callable tool list is exposed; a host's general instructions
+naming one do not make it available to an agent whose allow-list omits it (the
+packaged `marketing-iq` agent has no writer). When one is offered, stage the
+packet with it and run preflight; do not report `no-safe-transport` then.
 A helper accepting a filename does not create a file-writing capability. A
 profile exposing only read, execute and agent tools may lack the native writer.
 In that context use an existing exact capture, or report
@@ -2840,6 +2927,7 @@ sections: `product-truth`, `planning-fit`, `market-evidence`,
 `audience-recommendation`, `proposition`, `next-evidence`.
 Every Launch section, including `proposition`, MUST have `kind: "assessment"`.
 `kind: "draft-copy"` is invalid for this route, even for a proposed proposition.
+`audience-recommendation` and `proposition` end with the shared `Basis:` line.
 A section without supporting evidence says what is missing, not what a source
 "must mean." A useful conditional recommendation is allowed; false precision is not.
 
@@ -2916,6 +3004,8 @@ Use the common SKILL.md JSON contract. For a draft, use these sections:
 `direction-basis` (assessment), `invitation` (draft-copy),
 `talk-track` (draft-copy), `follow-up` (draft-copy),
 `publication-gaps` (assessment). Write useful actual copy, not empty headings.
+`direction-basis` ends with the shared `Basis:` line; an accepted record
+used as direction is `Basis: accepted-record`, never `current-request`.
 Keep all material an internal review draft.
 In every draft, the `talk-track` text contains exactly three numbered points, including
 post-event briefs. An existing event does not remove this output requirement.

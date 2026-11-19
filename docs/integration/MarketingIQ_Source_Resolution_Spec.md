@@ -729,6 +729,13 @@ TF-01–TF-04, `test:plugin` 18/18, `test:package` 1/1):
 
 ### Trial 4 (2026-11-11): all criteria pass
 
+> **Correction (2026-11-19):** the trial 4 record has no `subagent.selected`
+> event, so it ran the plugin's skills under Copilot's default agent, not the
+> packaged `marketing-iq` agent; `apply_patch` and the packet check were
+> available for that reason. The trial 2 and 3 records also lack the event.
+> The launch command's `--agent` did not take effect. The packaged agent's
+> allow-list has no writer (see the Elephant-Goldfish spike, trials A/B).
+
 Same launcher, flags and prompt, fresh folder, allow-all off (session
 `f2e246e1…`). The user approved four shell prompts: context and link encoding,
 evidence admission, packet check, and cleanup.

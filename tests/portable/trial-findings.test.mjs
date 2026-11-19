@@ -37,3 +37,31 @@ test("TF-04 session staging for preflight is processing, not saving", () => {
     assert.match(transport, /Staging and removing these files is processing, not saving/);
     assert.match(transport, /leave-unsaved choice does not skip preflight/);
 });
+
+// Elephant-Goldfish history check (spike 2026-11-19). Text pins only; behaviour needs a live trial.
+const sharedSkill = skills.find(([name]) => name === "marketing-iq")[1];
+
+test("HG-01 the shared schema defines the Basis line and treats history as never current-request", () => {
+    assert.match(sharedSkill, /end their `text` with one line `Basis: <token>; <token>`/);
+    assert.match(sharedSkill, /history, never `current-request`/);
+});
+
+test("HG-02 the Goldfish never sees history and its rules are passed verbatim", () => {
+    const block = review.split("### Goldfish rules (verbatim)")[1];
+    assert.ok(block, "Goldfish block present");
+    assert.match(review, /Never give it the project brief, preferences, discovered\s+records, direction context, earlier turns or tasks, or file paths/);
+    assert.match(block, /Do not judge whether a strategy is good; judge only whether its basis is visible/);
+});
+
+test("HG-03 history-only choices are escalated to the user, not contested by habit", () => {
+    assert.match(review, /"The user usually does this", a brief's\s+old objective or an earlier answer is not a contest/);
+    assert.match(review, /ESCALATE when the only basis is history/);
+    assert.match(review, /history-check:not-run:no-history/);
+});
+
+test("HG-04 every workflow runs the History check when history was loaded, without blocking on unavailable", () => {
+    for (const [name, text] of skills) {
+        assert.match(text, /run the History check \(Goldfish\) first/, name);
+        assert.match(text, /that returns unavailable is disclosed in proofGaps; it does not block/, name);
+    }
+});

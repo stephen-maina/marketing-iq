@@ -84,8 +84,8 @@ function makeLaunchPacket() {
                 { name: "product-truth", kind: "assessment", text: "The bounded excerpts support adoption-support positioning, not identical availability in every government cloud.", factIds: ["F1"] },
                 { name: "planning-fit", kind: "assessment", text: "A phase-one segment is approved, which supports a conditional plan rather than a blanket launch promise.", factIds: ["F2"] },
                 { name: "market-evidence", kind: "assessment", text: "Market proof remains incomplete in the supplied excerpts, so the recommendation stays conditional.", factIds: ["F2"] },
-                { name: "audience-recommendation", kind: "assessment", text: "A defensible next step is a government readiness discussion for IT and transformation leads.", factIds: ["F1", "F2"] },
-                { name: "proposition", kind: "assessment", text: "Position the conversation around readiness and adoption support rather than parity claims or guaranteed ROI.", factIds: ["F1"] },
+                { name: "audience-recommendation", kind: "assessment", text: "A defensible next step is a government readiness discussion for IT and transformation leads.\nBasis: current-request; evidence F1, F2", factIds: ["F1", "F2"] },
+                { name: "proposition", kind: "assessment", text: "Position the conversation around readiness and adoption support rather than parity claims or guaranteed ROI.\nBasis: evidence F1", factIds: ["F1"] },
                 { name: "next-evidence", kind: "assessment", text: "Before saving a direction, confirm cloud-specific availability and stronger market proof.", factIds: ["F1", "F2"] },
             ],
             facts: [
@@ -159,7 +159,7 @@ function makeFieldPacket() {
             validationMode: "session-review",
             summary: "Draft internal Field copy is ready for a government readiness discovery conversation, with missing logistics and publication proof still disclosed.",
             sections: [
-                { name: "direction-basis", kind: "assessment", text: "The current brief supports a proposed government readiness discovery conversation for government IT and transformation leads.", factIds: ["F1", "F2"] },
+                { name: "direction-basis", kind: "assessment", text: "The current brief supports a proposed government readiness discovery conversation for government IT and transformation leads.\nBasis: current-request; evidence F1, F2", factIds: ["F1", "F2"] },
                 { name: "invitation", kind: "draft-copy", text: invitation, factIds: ["F1", "F2"] },
                 { name: "talk-track", kind: "draft-copy", text: talkTrack, factIds: ["F1", "F2"] },
                 { name: "follow-up", kind: "draft-copy", text: followUp, factIds: ["F2"] },
@@ -1135,4 +1135,59 @@ test("artifact cleanup refuses to delete a different file substituted after crea
     await assert.rejects(saveResultArtifact([Buffer.from(JSON.stringify(makeBlockedPacket().candidate))], directory),
         error => error.code === "cleanup-failed");
     assert.equal(readFileSync(createdPath, "utf8"), "not owned by this invocation");
+});
+
+// History-basis (Elephant-Goldfish spike, 2026-11-19): strategy sections end with a checkable
+// "Basis:" line so a choice carried over from history cannot pass as current support.
+function sectionIndex(packet, name) {
+    return packet.candidate.sections.findIndex(section => section.name === name);
+}
+function setBasis(packet, name, basisLine) {
+    const section = packet.candidate.sections[sectionIndex(packet, name)];
+    const body = section.text.split("\n").filter(line => !line.startsWith("Basis:")).join("\n");
+    section.text = basisLine === null ? body : `${body}\n${basisLine}`;
+}
+function basisFindings(packet) {
+    return validateReviewPacket(packet).findings.filter(finding => /Basis/.test(finding.reason));
+}
+
+test("HB-01 strategy sections require a Basis line; blocked answers are exempt", () => {
+    assert.deepEqual(basisFindings(makeLaunchPacket()), []);
+    assert.deepEqual(basisFindings(makeFieldPacket()), []);
+    for (const [make, name] of [[makeLaunchPacket, "audience-recommendation"], [makeLaunchPacket, "proposition"],
+        [makeFieldPacket, "direction-basis"]]) {
+        const packet = make(); setBasis(packet, name, null);
+        const findings = basisFindings(packet);
+        assert.equal(findings.length, 1, name);
+        assert.equal(findings[0].path, `candidate.sections[${sectionIndex(packet, name)}].text`);
+    }
+    assert.deepEqual(basisFindings(makeBlockedPacket()), []);
+});
+
+test("HB-02 Basis tokens come from a closed vocabulary", () => {
+    for (const line of ["Basis: user usually prefers webinars", "Basis:", "Basis: current-request; current-request"]) {
+        const packet = makeLaunchPacket(); setBasis(packet, "proposition", line);
+        assert.equal(basisFindings(packet).length, 1, line);
+    }
+});
+
+test("HB-03 evidence basis must cite the section's own fact ids", () => {
+    const packet = makeLaunchPacket(); setBasis(packet, "proposition", "Basis: evidence F2");
+    assert.equal(basisFindings(packet).length, 1, "F2 is not in proposition factIds");
+    const valid = makeLaunchPacket(); setBasis(valid, "proposition", "Basis: evidence F1");
+    assert.deepEqual(basisFindings(valid), []);
+});
+
+test("HB-04 accepted-record basis requires an accepted-record direction", () => {
+    const packet = makeFieldPacket(); setBasis(packet, "direction-basis", "Basis: accepted-record");
+    assert.equal(basisFindings(packet).length, 1);
+    packet.candidate.directionStatus = "accepted-record";
+    assert.deepEqual(basisFindings(packet), []);
+});
+
+test("HB-05 a history-only choice escalated to the user must be disclosed in proofGaps", () => {
+    const packet = makeLaunchPacket(); setBasis(packet, "audience-recommendation", "Basis: pending-user-choice");
+    assert.equal(basisFindings(packet).length, 1);
+    packet.candidate.proofGaps.push("History check: the CIO audience came only from an earlier task; awaiting your choice.");
+    assert.deepEqual(basisFindings(packet), []);
 });

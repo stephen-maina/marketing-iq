@@ -6,6 +6,8 @@ Use the common SKILL.md JSON contract. For a draft, use these sections:
 `direction-basis` (assessment), `invitation` (draft-copy),
 `talk-track` (draft-copy), `follow-up` (draft-copy),
 `publication-gaps` (assessment). Write useful actual copy, not empty headings.
+`direction-basis` ends with the shared `Basis:` line; an accepted record
+used as direction is `Basis: accepted-record`, never `current-request`.
 Keep all material an internal review draft.
 In every draft, the `talk-track` text contains exactly three numbered points, including
 post-event briefs. An existing event does not remove this output requirement.

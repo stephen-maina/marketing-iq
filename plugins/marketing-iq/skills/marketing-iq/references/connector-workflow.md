@@ -137,6 +137,9 @@ Keep the actual resolved file/folder boundary and returned identities; metadata
 does not establish body evidence, approval or permission to distribute.
 A boundary mapped this way is the source the user supplied, not a redirect: use
 it without asking the user to confirm it, and name both URLs in the answer.
+Once a folder is resolved, pass that folder in `items_by_url` on every `workiq-retrieve` call
+(capability `OneDriveAndSharePoint`). Naming the folder only in the query text is not a boundary:
+an unbounded search can return files from elsewhere.
 When a retrieved item's URL is outside the boundary path (for example
 `/_layouts/15/Doc.aspx`), set `provenance.locationUrl` to the boundary only after
 a `workiq-fetch` of that item in this session returns a `parentReference` path

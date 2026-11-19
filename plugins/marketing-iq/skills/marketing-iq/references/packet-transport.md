@@ -10,6 +10,11 @@ permission to copy sources, persist evidence packs or write executable files.
 Source restrictions must permit this session-local processing. Do not stage
 credentials, excluded content, whole connector responses or transcripts.
 
+Native writers by host: Copilot CLI `apply_patch`; Claude Code `Write`. Only a
+writer in your own callable tool list is exposed; a host's general instructions
+naming one do not make it available to an agent whose allow-list omits it (the
+packaged `marketing-iq` agent has no writer). When one is offered, stage the
+packet with it and run preflight; do not report `no-safe-transport` then.
 A helper accepting a filename does not create a file-writing capability. A
 profile exposing only read, execute and agent tools may lack the native writer.
 In that context use an existing exact capture, or report

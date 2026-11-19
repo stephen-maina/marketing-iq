@@ -46,9 +46,11 @@ export function runAsync(args, input) {
 export function candidate(useCase, admitted, directionStatus = "proposed") {
     const sections = useCase === "launch-decision" ?
         ["product-truth", "planning-fit", "market-evidence", "audience-recommendation", "proposition", "next-evidence"].map(name =>
-            ({ name, kind: "assessment", text: "Synthetic proposal only; support sign-off is unknown, not unmet. No launch/publication approval. Prepare an exact record for confirmation before saving.", factIds: ["F1"] })) :
+            ({ name, kind: "assessment", text: "Synthetic proposal only; support sign-off is unknown, not unmet. No launch/publication approval. Prepare an exact record for confirmation before saving." +
+                (["audience-recommendation", "proposition"].includes(name) ? "\nBasis: evidence F1" : ""), factIds: ["F1"] })) :
         [
-            { name: "direction-basis", kind: "assessment", text: "Synthetic accepted direction proposes a readiness briefing, not a production launch.", factIds: ["F1"] },
+            { name: "direction-basis", kind: "assessment", text: "Synthetic accepted direction proposes a readiness briefing, not a production launch.\nBasis: " +
+                (directionStatus === "accepted-record" ? "accepted-record" : "evidence F1"), factIds: ["F1"] },
             { name: "invitation", kind: "draft-copy", text: "Subject: Fictional Harbor readiness briefing\nFor fictional-region service owners: clarify prerequisites before choosing a workflow. Proposed takeaway: a questions checklist.\nJoin at [date/time] via [registration link]. Internal review draft.", factIds: [] },
             { name: "talk-track", kind: "draft-copy", text: "1. Identify a fictional workflow and its readiness questions.\n2. Discuss the bounded synthetic checklist; support sign-off remains unknown.\n3. Propose a next discovery step using the questions checklist.", factIds: [] },
             { name: "follow-up", kind: "draft-copy", text: "Would a readiness questions checklist help your next fictional Harbor decision? Reply with a non-sensitive question. [sender]", factIds: [] },
