@@ -334,7 +334,8 @@ test("client WorkIQ example is copyable after relocation and rebuild preserves t
     assert.doesNotMatch(profile, /generated native-plugin component, not a consumer-workspace file/);
     assert.match(profile, /name: marketing-iq-workiq/);
     assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(profile)[1]),
-        ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch"]);
+        ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch",
+            "Read", "Bash", "PowerShell", "Agent", "mcp__workiq__retrieve", "mcp__workiq__fetch"]);
     assert.match(profile, /host's discovered installed plugin skill/);
     assert.match(profile, /Do not invoke the packaged Marketing IQ agent/);
     assert.match(profile, /Renaming a tool cannot supply missing source/);

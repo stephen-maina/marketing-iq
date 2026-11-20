@@ -1,7 +1,7 @@
 ---
 name: marketing-iq-web
 description: Client-owned public-web entrypoint for the installed Marketing IQ Launch and Field skills. Requires the host's web search and fetch tools. Internal review only.
-tools: ["read", "execute", "agent", "skill", "edit", "web"]
+tools: ["read", "execute", "agent", "skill", "edit", "web", "Read", "Bash", "PowerShell", "Agent", "Skill", "Edit", "Write", "WebSearch"]
 ---
 
 # Output-format hard gate
@@ -48,12 +48,16 @@ assistant, not this marketing runtime.
 Goal: use the host's public-web tools as the `web` adapter, or report the gap.
 
 1. Inspect this context's actually exposed callable names and schemas. The
-   `web` alias normally exposes `web_search` and `web_fetch`; frontmatter does
+   `web` alias normally exposes `web_search` and `web_fetch` in Copilot CLI;
+   Claude Code exposes `WebSearch`, and fetches pages through `cli.js
+   web-capture` (step 4). Frontmatter does
    not prove exposure. Renaming a tool cannot supply missing source identity,
    original passages or scope controls. Missing tools produce the shared
    blocked result with empty facts and sections.
-2. `web_search` results are generated summaries: use them only to find pages,
-   never as evidence. Admit bodies only from `web_fetch` of the page itself.
+2. `web_search` and `WebSearch` results are generated summaries: use them only
+   to find pages, never as evidence. Admit bodies only from `web_fetch` of the
+   page itself or from `cli.js web-capture`; Claude Code's WebFetch returns a
+   model-written summary and is never evidence.
 3. The scope is one official site path for the subject (the user's, or the
    publisher's own site found by search and stated before retrieval). Pages
    outside it are excluded by admission; third-party commentary is not product
@@ -65,11 +69,16 @@ Goal: use the host's public-web tools as the `web` adapter, or report the gap.
    --scope-kind container`, once per page. When the host saved a fetched page to
    a file, use `cli.js capture --adapter web --capture-file <path> --lines '<a-b[,c-d]>'
    --source-url <page URL> --scope-url <scope> --scope-kind container --tool
-   web_fetch`. Never copy page text into a handoff in Copilot CLI. Only on a host
-   without an events.jsonl record does an inline page go into an exact handoff
+   web_fetch`. Never copy page text into a handoff in Copilot CLI. In Claude
+   Code, admit a page with `cli.js web-capture --url <page URL> --index`, then
+   `cli.js web-capture --adapter web --url <same> --sha256 <index sha256> --lines
+   '<a-b[,c-d]>' --scope-url <scope> --scope-kind container`, once per page; on
+   `SOURCE_CHANGED` index again. Never copy page text into a handoff in Claude
+   Code either. Only on a host with neither route does an inline page go into an exact handoff
    for `evidence --adapter web`; copy text exactly and join non-adjacent
    passages only with a line containing exactly `[...]`.
 5. Stop denied operations; no WorkIQ, shell HTTP or cached substitute.
+   `cli.js web-capture` is the shared helper's own fetch, not shell HTTP.
    `execute` is limited to the shared helpers; `edit` only stages session
    transport files, never workspace, plugin or source files.
 

@@ -298,13 +298,19 @@ Claude Code installs it from the same repository (`claude plugin marketplace
 add stephen-maina/marketing-iq`, then `claude plugin install
 marketing-iq@marketing-iq-plugins`); it reads `.claude-plugin\` manifests that
 mirror the Copilot ones. Install and agent listing are verified (CLI 2.1.126,
-2026-11-20); running the workflow there is not. Known limits on Claude Code:
-the agents' Copilot tool names may not resolve; WorkIQ evidence is rejected
-because the CLI admits only the `workiq-retrieve` tool name, not
-`mcp__<server>__…`; `workiq-capture` and `events-capture` read Copilot's
-session record only, so admission falls back to staged handoffs written with
-`Write`; and WebFetch returns a model's answer, not the page, so it is not body
-evidence for the public-web profile.
+2026-11-20); running the workflow there is not. Each agent lists every tool
+under both hosts' names (Copilot ignores names it does not know and reads
+`Read`, `Bash`, `Edit`, `Write` and `Agent` as aliases). `workiq-capture` and
+`events-capture` read Claude Code's own session record
+(`<session-id>.jsonl`, or `subagents\agent-<id>.jsonl` for a subagent) as well
+as Copilot's `events.jsonl`. WorkIQ is admitted as `mcp__workiq__retrieve`, so
+the WorkIQ MCP server must be named `workiq` in Claude Code. Claude Code's
+WebFetch returns a model's answer, not the page, so it is never evidence;
+`cli.js web-capture` fetches public https pages itself instead. Not yet
+verified there: a live run of either agent, whether Claude accepts the
+Copilot-only names in a mixed list, the record of a real WorkIQ call, and
+native review-packet capture (`Test-ReviewPacket.mjs --events`, Copilot only;
+use `--packet-file`).
 
 The plugin does not install/authenticate connectors, grant access, guarantee
 model compliance, send invitations or publish marketing material. It cannot

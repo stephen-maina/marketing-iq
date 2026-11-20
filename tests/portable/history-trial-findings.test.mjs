@@ -38,9 +38,9 @@ test("HT-03 every retrieval after folder resolution is bounded structurally, not
 
 test("HT-05 WorkIQ admission uses the node workiq-capture route, never a model-written events script (A3/A4)", () => {
     const flat = connector.replace(/\s+/g, " ");
-    assert.match(flat, /cli\.js workiq-capture --events <absolute path of this session's events\.jsonl> --select/);
+    assert.match(flat, /cli\.js workiq-capture --events <absolute path of this session's record> --select/);
     assert.match(flat, /needs no file writer and no script of your own/);
-    assert.match(flat, /Never write your own PowerShell, node or other script that reads events\.jsonl/);
+    assert.match(flat, /Never write your own PowerShell, node or other script that reads a session record/);
 });
 
 test("HT-06 every WorkIQ admission instruction names workiq-capture first, so a writer does not invite staging (A6)", async () => {
@@ -48,12 +48,12 @@ test("HT-06 every WorkIQ admission instruction names workiq-capture first, so a 
     // `evidence --input-file` and never tried workiq-capture. Each passage must now lead with it.
     const flat = text => text.replace(/\s+/g, " ");
     const adapters = flat(await read("adapters.md"));
-    assert.match(adapters, /For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own events\.jsonl \(`connector-workflow\.md`\)/);
+    assert.match(adapters, /For WorkIQ in Copilot CLI or Claude Code, admit with `workiq-capture` from the session's own record \(`connector-workflow\.md`\)/);
     assert.doesNotMatch(adapters, /cli\.js check node \.github\\skills\\marketing-iq\\scripts\\portable\\cli\.js evidence --adapter workiq/);
     const generalRule = flat(connector).split("When the host saved")[0];
     assert.ok(generalRule.indexOf("workiq-capture") < generalRule.indexOf("evidence --adapter <id>"),
         "connector-workflow states the WorkIQ route before the general evidence route");
-    assert.match(flat(transport), /2\. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the session's events\.jsonl \(`connector-workflow\.md`\); never stage a WorkIQ handoff/);
+    assert.match(flat(transport), /2\. Evidence admission: for WorkIQ in Copilot CLI or Claude Code use `workiq-capture` from the session record \(`connector-workflow\.md`\); never stage a WorkIQ handoff/);
 });
 
 test("HT-07 a host-saved connector result is admitted with capture before any staging route (eval E1/E2)", () => {
@@ -84,10 +84,10 @@ test("HT-09 an inline result is admitted with events-capture before any staging 
     const eventsAt = general.indexOf("cli.js events-capture --events");
     const stagingAt = general.indexOf("`--input-file <absolute-session-handoff.json>`");
     assert.ok(eventsAt > 0 && eventsAt < stagingAt, "events-capture comes before the staging route");
-    assert.match(general, /Only when no capture route applies \(an inline result on a host without an events\.jsonl record/);
+    assert.match(general, /Only when no capture route applies \(an inline result on a host with no session record the CLI reads/);
     assert.match(general, /`SOURCE_UNIDENTIFIED`/);
     assert.match(general, /`RESULT_SAVED_TO_FILE`/);
-    assert.match(flat(transport), /Any other inline result in Copilot CLI is admitted with `cli\.js events-capture`/);
+    assert.match(flat(transport), /Any other inline result in Copilot CLI, or connector result in Claude Code, is admitted with `cli\.js events-capture`/);
     const web = flat(await fs.readFile(join(root, ".github", "skills", "marketing-iq", "examples", "marketing-iq-web.agent.md"), "utf8"));
     assert.ok(web.indexOf("events-capture --adapter web") < web.indexOf("evidence --adapter web"), "web profile leads with events-capture");
     assert.match(web, /Never copy page text into a handoff in Copilot CLI/);

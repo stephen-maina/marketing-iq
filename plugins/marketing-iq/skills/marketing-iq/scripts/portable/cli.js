@@ -2,9 +2,10 @@
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { executeDecision } from "./decisions.js";
-import { captureHandoff, eventsCaptureHandoff, eventsCaptureIndex, normalizeEvidence, workiqEventsHandoff } from "./evidence.js";
+import { captureHandoff, eventsCaptureHandoff, eventsCaptureIndex, normalizeEvidence, recordFormat, workiqEventsHandoff } from "./evidence.js";
 import { basename } from "node:path";
 import { context, routes } from "./routes.js";
+import { fetchPage, webHandoff, webIndex } from "./web.js";
 import { MiqError, ioCode, readAppendOnlyFile, readBoundedFile, readJsonFile, requireThat, stdin, strictJson, utf8 } from "./json.js";
 const command = process.argv[2];
 try {
@@ -17,9 +18,12 @@ try {
         "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
         "capture --adapter <id> --capture-file <absolute-host-capture> --lines '<a-b[,c-d]>' --source-url <https> " +
         "--scope-url <https> --scope-kind exact|container --tool <name> [--source-kind <kind>]\n" +
-        "workiq-capture --events <absolute events.jsonl> --select '<toolCallId>:<i,j>[+<toolCallId>:<k>]'\n" +
-        "events-capture --events <absolute events.jsonl> --call <toolCallId> --index\n" +
-        "events-capture --adapter <id> --events <absolute events.jsonl> --call <toolCallId> --lines '<a-b[,c-d]>' " +
+        "workiq-capture --events <absolute events.jsonl|<session-id>.jsonl> --select '<toolCallId>:<i,j>[+<toolCallId>:<k>]'\n" +
+        "events-capture --events <absolute events.jsonl|<session-id>.jsonl> --call <toolCallId> --index\n" +
+        "events-capture --adapter <id> --events <absolute events.jsonl|<session-id>.jsonl> --call <toolCallId> --lines '<a-b[,c-d]>' " +
+        "--scope-url <https> --scope-kind exact|container [--source-kind <kind>]\n" +
+        "web-capture --url <https> --index\n" +
+        "web-capture --adapter <id> --url <https> --sha256 <hex> --lines '<a-b[,c-d]>' " +
         "--scope-url <https> --scope-kind exact|container [--source-kind <kind>]\n" +
         "local-file --file <explicit-synthetic-envelope.json>\n" +
         "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
@@ -105,9 +109,9 @@ try {
         }
         case "workiq-capture": {
             options(["--events", "--select"]);
-            requireThat(basename(arg("--events")).toLowerCase() === "events.jsonl");
+            const format = recordFormat(basename(arg("--events")));
             const bytes = await readAppendOnlyFile(arg("--events"), 67108864);
-            const { handoff, gaps } = workiqEventsHandoff(utf8(bytes), Date.now(), arg("--select"));
+            const { handoff, gaps } = workiqEventsHandoff(utf8(bytes), Date.now(), arg("--select"), format);
             const admitted = normalizeEvidence(handoff, "workiq");
             admitted.proofGaps.push(...gaps);
             result = admitted;
@@ -119,13 +123,35 @@ try {
                 options(["--events", "--call"], ["--index"]);
             else
                 options(["--adapter", "--events", "--call", "--lines", "--scope-url", "--scope-kind"], ["--source-kind"]);
-            requireThat(basename(arg("--events")).toLowerCase() === "events.jsonl");
+            const format = recordFormat(basename(arg("--events")));
             const source = utf8(await readAppendOnlyFile(arg("--events"), 67108864));
             if (index) {
-                result = eventsCaptureIndex(source, Date.now(), arg("--call"));
+                result = eventsCaptureIndex(source, Date.now(), arg("--call"), format);
                 break;
             }
-            const { handoff, gap } = eventsCaptureHandoff(source, Date.now(), arg("--call"), {
+            const { handoff, gap } = eventsCaptureHandoff(source, Date.now(), arg("--call"), format, {
+                adapter: arg("--adapter"), lines: arg("--lines"), scopeUrl: arg("--scope-url"),
+                scopeKind: arg("--scope-kind"), sourceKind: args.has("--source-kind") ? arg("--source-kind") : "document"
+            });
+            const admitted = normalizeEvidence(handoff, arg("--adapter"));
+            admitted.proofGaps.push(gap);
+            result = admitted;
+            break;
+        }
+        case "web-capture": {
+            const index = args.get("--index") === true;
+            if (index)
+                options(["--url"], ["--index"]);
+            else {
+                options(["--adapter", "--url", "--sha256", "--lines", "--scope-url", "--scope-kind"], ["--source-kind"]);
+                requireThat(/^[0-9a-f]{64}$/.test(arg("--sha256")));
+            }
+            const page = await fetchPage(arg("--url"));
+            if (index) {
+                result = webIndex(page);
+                break;
+            }
+            const { handoff, gap } = webHandoff(page, Date.now(), arg("--sha256"), {
                 adapter: arg("--adapter"), lines: arg("--lines"), scopeUrl: arg("--scope-url"),
                 scopeKind: arg("--scope-kind"), sourceKind: args.has("--source-kind") ? arg("--source-kind") : "document"
             });

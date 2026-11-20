@@ -1869,19 +1869,32 @@ named in a result. Another adapter is not a fallback for denied WorkIQ access.
 The only bundled local-file adapter is an explicitly selected synthetic sample,
 not a production connector or a way to relabel cached enterprise evidence.
 
-For WorkIQ in Copilot CLI, admit hits straight from the host's own record of
-this session, which needs no file writer and no script of your own. Use it even
+The session record is the host's own log of this session's tool calls. Copilot
+CLI: `events.jsonl` in the session-state folder. Claude Code: under the Claude
+config directory (default `%USERPROFILE%\.claude`), `projects\<working
+directory with every character other than a letter or digit replaced by
+-`>`\<session-id>.jsonl`; an agent running as a subagent (how a plugin agent
+usually runs) is recorded in `<that folder>\<session-id>\subagents\agent-<id>.jsonl`.
+Use the most recently modified record that matches; a call id from another
+record is not found (`CAPTURE_UNAVAILABLE`), never mixed up. `--events` takes
+either host's record by its absolute path.
+
+For WorkIQ in Copilot CLI or Claude Code, admit hits straight from the session
+record, which needs no file writer and no script of your own. Use it even
 when a writer is available; do not stage a WorkIQ handoff file:
 `node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture
---events <absolute path of this session's events.jsonl> --select
-'<workiq-retrieve toolCallId>:<i,j>[+<toolCallId>:<k>]'`. Indices are 0-based,
+--events <absolute path of this session's record> --select
+'<retrieve toolCallId>:<i,j>[+<toolCallId>:<k>]'`. Indices are 0-based,
 ascending positions in that call's results; choose the hits that answer the
-question. The CLI reads only successful `workiq-retrieve` completions, takes the
+question. The retrieval tool is `workiq-retrieve` in Copilot CLI and
+`mcp__workiq__retrieve` in Claude Code, which requires the WorkIQ MCP server to
+be named `workiq` there; under another name it is not admitted, so report that
+setup gap. The CLI reads only successful completions of those tools, takes the
 scope from that call's single `items_by_url` folder (a call bounded only by
 query text is rejected as `RETRIEVAL_NOT_BOUNDED`; calls with different folders
 as `SCOPE_MISMATCH`), uses the text after each hit's `- **snippet:** ` marker as
 the body and applies the same admission rules and limits. Never write your own
-PowerShell, node or other script that reads events.jsonl or rebuilds a handoff.
+PowerShell, node or other script that reads a session record or rebuilds a handoff.
 
 Any other adapter (for example `microsoft-learn` or `web`) whose current result
 the host saved to a file (for example "Output too large… Saved to: <path>"):
@@ -1902,25 +1915,42 @@ admission, not truth, authentication, authority or semantic fit. Retain all retu
 restrictions/proof gaps and original admitted passages for independent review.
 Never use excluded content to make facts. A ready result does not approve the answer.
 
-Any other adapter whose current result came back inline, in Copilot CLI: admit
-it from this session's events.jsonl, which needs no writer and no copying. First
+Any other adapter whose current result came back inline, in Copilot CLI or from
+a connector (an `mcp__…` tool) in Claude Code: admit it from the session record,
+which needs no writer and no copying. First
 `node <MIQ_SHARED>\scripts\portable\cli.js events-capture --events
-<absolute path of this session's events.jsonl> --call <fetch toolCallId> --index`
+<absolute path of this session's record> --call <fetch toolCallId> --index`
 lists that result's line numbers and line starts; then `node
 <MIQ_SHARED>\scripts\portable\cli.js events-capture --adapter <id>
 --events <same path> --call <same toolCallId> --lines '<a-b[,c-d]>' --scope-url <scope
 URL> --scope-kind exact|container`, once per page. The CLI takes the source URL,
 tool name and time from the call itself, so a search call (no single https `url`
 argument) is rejected as `SOURCE_UNIDENTIFIED` and a saved-to-file pointer as
-`RESULT_SAVED_TO_FILE` (use `capture` on that file). Line ranges follow the
+`RESULT_SAVED_TO_FILE` (use `capture` on that file). Claude Code's built-in tools
+are refused as `RESULT_NOT_VERBATIM`: its WebFetch returns a model-written
+summary, not the page. Line ranges follow the
 `capture` rules above. Use it even when a writer is available; never write your
-own script that reads events.jsonl. Keep every comma list (`--lines`,
+own script that reads a session record. Keep every comma list (`--lines`,
 `--select`) in single quotes as shown: in PowerShell an unquoted comma builds an
 array, which the host's command check cannot parse, so an unattended run denies
 the call.
 
-Only when no capture route applies (an inline result on a host without an
-events.jsonl record, or WorkIQ on such a host): run
+A public web page on a host whose fetch tool does not return the page text
+(Claude Code), or whenever no connector returned it: let the CLI fetch it. First
+`node <MIQ_SHARED>\scripts\portable\cli.js web-capture --url <page
+URL> --index` fetches the page, converts it to text by a fixed rule and lists line
+numbers with a `sha256`; then `node <MIQ_SHARED>\scripts\portable\cli.js
+web-capture --adapter web --url <same URL> --sha256 <that sha256> --lines
+'<a-b[,c-d]>' --scope-url <scope URL> --scope-kind exact|container`, once per page.
+The second call fetches again and is refused as `SOURCE_CHANGED` if the text
+differs; index again and choose new lines. The recorded source is the final URL
+after https redirects, so a redirect out of scope is excluded. Only public https
+pages are fetched (no IP addresses, localhost or single-label intranet names, no
+credentials); `FETCH_FAILED`, `UNSUPPORTED_CONTENT` (for example a PDF) and
+`SOURCE_TOO_LARGE` (over 4 MB) are reported as gaps, never worked around.
+
+Only when no capture route applies (an inline result on a host with no session
+record the CLI reads, or WorkIQ on such a host): run
 `node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
 on the exact normalized handoff using safe data-only stdin/current permitted
 host-capture transport, or `--input-file <absolute-session-handoff.json>` under
@@ -2830,12 +2860,12 @@ operator-reviewed configuration change could expose another connector; do not
 perform one during the marketing workflow. Ordinary workspace composition uses
 its current host context and does not inherit that profile merely by reading it.
 
-For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own
-events.jsonl (`connector-workflow.md`); it needs no handoff file:
+For WorkIQ in Copilot CLI or Claude Code, admit with `workiq-capture` from the
+session's own record (`connector-workflow.md`); it needs no handoff file:
 
 ```powershell
 node <MIQ_SHARED>\scripts\portable\cli.js check
-node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select '<workiq-retrieve toolCallId>:<i,j>'
+node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture --events <absolute session record> --select '<retrieve toolCallId>:<i,j>'
 ```
 
 On a host without that record, `evidence --adapter workiq` reads the normalized
@@ -3069,14 +3099,16 @@ callable schema; do not invent a `create` tool because these instructions name i
    review packet, or final canonical object needed by the next operation.
    Do not overwrite a prior reviewed pair. Read back complete bytes and compare
    decoded values, exact strings and array order with the retained input.
-2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
-   session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
-   file there. If the host saved the result to a file, admit it with `cli.js
-   capture` (`connector-workflow.md`), never by copying it into a handoff. Any
-   other inline result in Copilot CLI is admitted with `cli.js events-capture`
-   from the session's events.jsonl (`connector-workflow.md`), never staged. On a
-   host without that record, admission accepts the existing closed adapter
-   handoff, not a raw connector response:
+2. Evidence admission: for WorkIQ in Copilot CLI or Claude Code use
+   `workiq-capture` from the session record (`connector-workflow.md`); never
+   stage a WorkIQ handoff file there. If the host saved the result to a file,
+   admit it with `cli.js capture` (`connector-workflow.md`), never by copying it
+   into a handoff. Any other inline result in Copilot CLI, or connector result in
+   Claude Code, is admitted with `cli.js events-capture` from the session record,
+   and a public web page in Claude Code with `cli.js web-capture`
+   (`connector-workflow.md`), never staged. On a host with no record the CLI
+   reads, admission accepts the existing closed adapter handoff, not a raw
+   connector response:
 
    ```powershell
    node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>

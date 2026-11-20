@@ -15,18 +15,21 @@ const flat = text => text.replace(/\s+/g, " ");
 
 test("WP-01 the web profile requests web tools and no WorkIQ, and ships with the plugin", () => {
     assert.match(web, /^name: marketing-iq-web$/m);
-    assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(web)[1]), ["read", "execute", "agent", "skill", "edit", "web"]);
+    assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(web)[1]), ["read", "execute", "agent", "skill", "edit", "web",
+        "Read", "Bash", "PowerShell", "Agent", "Skill", "Edit", "Write", "WebSearch"]);
     assert.doesNotMatch(web, /workiq\//);
     assert.match(assets, /"marketing-iq-web\.agent\.md"/);
 });
 
 test("WP-02 search results are discovery only; bodies come from fetched pages through the CLI", () => {
     const text = flat(web);
-    assert.match(text, /`web_search` results are generated summaries: use them only to find pages, never as evidence/);
-    assert.match(text, /Admit bodies only from `web_fetch` of the page itself/);
+    assert.match(text, /`web_search` and `WebSearch` results are generated summaries: use them only to find pages, never as evidence/);
+    assert.match(text, /Admit bodies only from `web_fetch` of the page itself or from `cli\.js web-capture`; Claude Code's WebFetch returns a model-written summary and is never evidence/);
     assert.match(text, /saved a fetched page to a file, use `cli\.js capture --adapter web --capture-file/);
     assert.match(text, /Admit a page returned inline from this session's record: `cli\.js events-capture/);
     assert.match(text, /Never copy page text into a handoff in Copilot CLI/);
+    assert.match(text, /Never copy page text into a handoff in Claude Code either/);
+    assert.ok(text.indexOf("web-capture --adapter web") < text.indexOf("evidence --adapter web"), "web-capture before staging");
     assert.match(text, /scope is one official site path/);
 });
 

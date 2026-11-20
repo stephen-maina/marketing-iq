@@ -90,7 +90,7 @@ export function normalizeEvidence(value, selectedAdapter) {
         requireThat(typeof origin.currentResponse === "boolean");
         const location = origin.locationUrl === null ? observed : https(origin.locationUrl);
         if (selectedAdapter === "workiq") {
-            requireThat(["workiq-retrieve", "workiq/retrieve"].includes(tool) &&
+            requireThat(["workiq-retrieve", "workiq/retrieve", "mcp__workiq__retrieve"].includes(tool) &&
                 ["sharepoint", "email", "meeting"].includes(entry.sourceKind));
         }
         if (selectedAdapter === "local-file") {
@@ -206,7 +206,13 @@ function selections(select) {
         return { callId: match[1], indices };
     });
 }
-function hostEvents(source) {
+export function recordFormat(name) {
+    if (name.toLowerCase() === "events.jsonl")
+        return "copilot";
+    requireThat(/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|agent-[A-Za-z0-9]{1,64})\.jsonl$/i.test(name));
+    return "claude";
+}
+function hostEvents(source, format) {
     const lines = source.split("\n");
     // A live log's last line may still be mid-write; only newline-terminated lines are complete.
     if (!source.endsWith("\n"))
@@ -226,7 +232,42 @@ function hostEvents(source) {
         requireThat(value !== null && typeof value === "object" && !Array.isArray(value), "CAPTURE_UNAVAILABLE");
         events.push(value);
     }
-    return events;
+    return format === "claude" ? claudeCalls(events) : events;
+}
+// Claude Code's session record is undocumented: an assistant entry carries tool_use blocks and a later
+// user entry carries the matching tool_result. Map them onto Copilot's start/complete events so one set
+// of admission rules applies. Only assistant/user entries count: Claude also stores copies of messages
+// in other entry types (observed: api-request-blob), which must not make a call look duplicated. An entry
+// written twice (same uuid) is one entry; a result that is not all text, or is an error, is unsuccessful.
+function claudeCalls(entries) {
+    const seen = new Set(), calls = [];
+    for (const entry of entries) {
+        if (typeof entry.uuid === "string") {
+            if (seen.has(entry.uuid))
+                continue;
+            seen.add(entry.uuid);
+        }
+        const content = field(entry.message, "content");
+        if (!Array.isArray(content))
+            continue;
+        for (const block of content) {
+            if (entry.type === "assistant" && field(block, "type") === "tool_use")
+                calls.push({ type: "tool.execution_start", data: {
+                        toolCallId: field(block, "id"), toolName: field(block, "name"), arguments: field(block, "input")
+                    } });
+            if (entry.type !== "user" || field(block, "type") !== "tool_result")
+                continue;
+            const raw = field(block, "content");
+            const result = typeof raw === "string" ? raw : Array.isArray(raw) && raw.length > 0 &&
+                raw.every(part => field(part, "type") === "text" && typeof field(part, "text") === "string") ?
+                raw.map(part => field(part, "text")).join("\n") : undefined;
+            calls.push({ type: "tool.execution_complete", timestamp: entry.timestamp, data: {
+                    toolCallId: field(block, "tool_use_id"), success: field(block, "is_error") !== true && result !== undefined,
+                    result: { content: result }
+                } });
+        }
+    }
+    return calls;
 }
 const field = (value, name) => value !== null && typeof value === "object" && !Array.isArray(value) ? value[name] : undefined;
 // One successful call in the record: exactly one start and one completion for the id.
@@ -238,15 +279,17 @@ function completedCall(events, callId) {
         field(completes[0].data, "success") === true, "CAPTURE_UNAVAILABLE");
     return { start: starts[0], complete: completes[0] };
 }
-export function workiqEventsHandoff(source, nowMs, select) {
+export function workiqEventsHandoff(source, nowMs, select, format) {
     const chosen = selections(select);
-    const events = hostEvents(source);
+    const events = hostEvents(source, format);
     let scope;
     const sources = [], ids = new Set(), urls = new Set(), gaps = [];
     for (const { callId, indices } of chosen) {
         const call = completedCall(events, callId);
         const starts = [call.start], completes = [call.complete];
-        requireThat(field(starts[0].data, "toolName") === "workiq-retrieve", "CAPTURE_UNAVAILABLE");
+        // Copilot names the WorkIQ retrieval workiq-retrieve; Claude Code, with the server named workiq, mcp__workiq__retrieve.
+        const tool = field(starts[0].data, "toolName");
+        requireThat(tool === "workiq-retrieve" || tool === "mcp__workiq__retrieve", "CAPTURE_UNAVAILABLE");
         const capabilities = field(field(starts[0].data, "arguments"), "capabilities");
         const bounds = (Array.isArray(capabilities) ? capabilities : []).flatMap(capability => {
             const items = field(capability, "items_by_url");
@@ -288,10 +331,10 @@ export function workiqEventsHandoff(source, nowMs, select) {
                 retrievedThisSession: true, body: parts[1], versionId: null, locator: null,
                 restrictions: { access: field(hit, "contentProtection") === "allowed" ? "allowed" : "unknown",
                     usage: "unknown", sensitivityLabel: typeof labelName === "string" ? labelName : null },
-                provenance: { tool: "workiq-retrieve", observedAt, currentResponse: true, locationUrl: scope }
+                provenance: { tool, observedAt, currentResponse: true, locationUrl: scope }
             });
         }
-        gaps.push(`Excerpts are results ${indices.join(",")} of workiq-retrieve call ${callId}, selected by the caller; ` +
+        gaps.push(`Excerpts are results ${indices.join(",")} of ${tool} call ${callId}, selected by the caller; ` +
             "the selection is not an independent review.");
     }
     return { handoff: { schemaVersion: 1, adapterId: "workiq", outcome: "ok", scope: { kind: "container", url: scope }, sources },
@@ -301,10 +344,13 @@ export function workiqEventsHandoff(source, nowMs, select) {
 // own events.jsonl, so the model never copies a body. Source URL, tool and time come from the
 // record; a call without exactly one https URL argument (a search) is not a body source.
 const savedPointer = /^Output too large to read at once/;
-function inlineResult(source, nowMs, callId) {
+function inlineResult(source, nowMs, callId, format) {
     requireThat(/^[A-Za-z0-9_-]{1,128}$/.test(callId));
-    const { start, complete } = completedCall(hostEvents(source), callId);
+    const { start, complete } = completedCall(hostEvents(source, format), callId);
     const tool = text(field(start.data, "toolName"), 256);
+    // Claude Code's built-in WebFetch returns a model-written summary, not page text; only a connector
+    // (MCP) result there is the source's own words. Use web-capture for web pages in Claude Code.
+    requireThat(format === "copilot" || tool.startsWith("mcp__"), "RESULT_NOT_VERBATIM");
     const urls = [];
     JSON.stringify(field(start.data, "arguments") ?? null, (_key, value) => {
         if (typeof value === "string" && /^[a-z][a-z0-9+.-]*:\/\//i.test(value))
@@ -322,18 +368,19 @@ function inlineResult(source, nowMs, callId) {
     requireThat(Number.isFinite(observedMs), "CAPTURE_UNAVAILABLE");
     return { tool, sourceUrl: url, observedAt, observedMs, content: text(content, 2097152) };
 }
-export function eventsCaptureHandoff(source, nowMs, callId, options) {
+export function eventsCaptureHandoff(source, nowMs, callId, format, options) {
     requireThat(!["workiq", "local-file"].includes(label(options.adapter)));
-    const call = inlineResult(source, nowMs, callId);
+    const call = inlineResult(source, nowMs, callId, format);
     const handoff = captureHandoff(call.content, call.observedMs, nowMs, { ...options, sourceUrl: call.sourceUrl, tool: call.tool });
     const gap = `${call.sourceUrl}: body is lines ${options.lines} of ${call.tool} call ${callId}, selected by the caller; ` +
         "the selection is not an independent review.";
     return { handoff, gap };
 }
 // Inline results carry no line numbers; the index lets the caller choose ranges without a second copy.
-export function eventsCaptureIndex(source, nowMs, callId) {
-    const call = inlineResult(source, nowMs, callId);
-    const lines = call.content.split(/\r?\n/).flatMap((line, index) => line.trim() ?
-        [{ n: index + 1, start: line.length > 80 ? `${line.slice(0, 80)}…` : line }] : []);
-    return { status: "ok", tool: call.tool, sourceUrl: call.sourceUrl, observedAt: call.observedAt, lines };
+export function eventsCaptureIndex(source, nowMs, callId, format) {
+    const call = inlineResult(source, nowMs, callId, format);
+    return { status: "ok", tool: call.tool, sourceUrl: call.sourceUrl, observedAt: call.observedAt,
+        lines: lineIndex(call.content) };
 }
+export const lineIndex = (content) => content.split(/\r?\n/).flatMap((line, index) => line.trim() ?
+    [{ n: index + 1, start: line.length > 80 ? `${line.slice(0, 80)}…` : line }] : []);

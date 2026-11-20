@@ -13,7 +13,7 @@ export const runtimeAssets = [
         "marketing-context.md", "marketing-craft.md", "optional-extensions.md",
         "optional-extensions.json"].map(name => `.github/skills/marketing-iq/references/${name}`),
     ...["Test-ReviewPacket.mjs", "Save-ResultArtifact.mjs", "Inspect-Installation.mjs"].map(name => `.github/skills/marketing-iq/scripts/${name}`),
-    ...["cli.js", "decisions.js", "evidence.js", "instant.js", "json.js", "routes.js", "package.json"]
+    ...["cli.js", "decisions.js", "evidence.js", "instant.js", "json.js", "routes.js", "web.js", "package.json"]
         .map(name => `.github/skills/marketing-iq/scripts/portable/${name}`),
     ...["adapter-template.mjs", "synthetic-evidence.json", "github-contents-adapter.mjs",
         "github-contents.synthetic.json", "marketing-iq-workiq.agent.md", "marketing-iq-web.agent.md",

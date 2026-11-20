@@ -127,7 +127,7 @@ test("WC-08 '<command> --help' prints usage, so a model checking usage is not to
     for (const command of ["workiq-capture", "evidence", "capture"]) {
         const result = spawnSync(process.execPath, [join(root, cliRelative), command, "--help"], { encoding: "utf8", timeout: 20000 });
         assert.equal(result.status, 0, command);
-        assert.match(result.stdout, /workiq-capture --events <absolute events\.jsonl> --select '<toolCallId>:<i,j>/, command);
+        assert.match(result.stdout, /workiq-capture --events <absolute events\.jsonl\|<session-id>\.jsonl> --select '<toolCallId>:<i,j>/, command);
     }
     const extra = spawnSync(process.execPath, [join(root, cliRelative), "workiq-capture", "--help", "--select", "x:0"], { encoding: "utf8" });
     assert.equal(extra.status, 1, "--help combined with other options stays invalid");

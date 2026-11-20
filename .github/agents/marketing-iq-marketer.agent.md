@@ -1,7 +1,7 @@
 ---
 name: marketing-iq-marketer
 description: Read-only AI marketing adviser for a coordinator-supplied real brief, admitted passages and exact delivered copy. Reviews usefulness and claim scope; no retrieval or approval authority.
-tools: ["read"]
+tools: ["read", "Read"]
 ---
 
 # Output-format hard gate

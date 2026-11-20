@@ -62,12 +62,12 @@ operator-reviewed configuration change could expose another connector; do not
 perform one during the marketing workflow. Ordinary workspace composition uses
 its current host context and does not inherit that profile merely by reading it.
 
-For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own
-events.jsonl (`connector-workflow.md`); it needs no handoff file:
+For WorkIQ in Copilot CLI or Claude Code, admit with `workiq-capture` from the
+session's own record (`connector-workflow.md`); it needs no handoff file:
 
 ```powershell
 node .github\skills\marketing-iq\scripts\portable\cli.js check
-node .github\skills\marketing-iq\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select '<workiq-retrieve toolCallId>:<i,j>'
+node .github\skills\marketing-iq\scripts\portable\cli.js workiq-capture --events <absolute session record> --select '<retrieve toolCallId>:<i,j>'
 ```
 
 On a host without that record, `evidence --adapter workiq` reads the normalized

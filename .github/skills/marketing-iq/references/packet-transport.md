@@ -42,14 +42,16 @@ callable schema; do not invent a `create` tool because these instructions name i
    review packet, or final canonical object needed by the next operation.
    Do not overwrite a prior reviewed pair. Read back complete bytes and compare
    decoded values, exact strings and array order with the retained input.
-2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
-   session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
-   file there. If the host saved the result to a file, admit it with `cli.js
-   capture` (`connector-workflow.md`), never by copying it into a handoff. Any
-   other inline result in Copilot CLI is admitted with `cli.js events-capture`
-   from the session's events.jsonl (`connector-workflow.md`), never staged. On a
-   host without that record, admission accepts the existing closed adapter
-   handoff, not a raw connector response:
+2. Evidence admission: for WorkIQ in Copilot CLI or Claude Code use
+   `workiq-capture` from the session record (`connector-workflow.md`); never
+   stage a WorkIQ handoff file there. If the host saved the result to a file,
+   admit it with `cli.js capture` (`connector-workflow.md`), never by copying it
+   into a handoff. Any other inline result in Copilot CLI, or connector result in
+   Claude Code, is admitted with `cli.js events-capture` from the session record,
+   and a public web page in Claude Code with `cli.js web-capture`
+   (`connector-workflow.md`), never staged. On a host with no record the CLI
+   reads, admission accepts the existing closed adapter handoff, not a raw
+   connector response:
 
    ```powershell
    node .github\skills\marketing-iq\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>

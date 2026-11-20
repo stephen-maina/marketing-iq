@@ -1,7 +1,7 @@
 ---
 name: marketing-iq-workiq
 description: Client-owned WorkIQ entrypoint for the installed Marketing IQ Launch and Field skills. Requires compatible exposed WorkIQ retrieve/fetch tools. Internal review only.
-tools: ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch"]
+tools: ["read", "execute", "agent", "workiq/retrieve", "workiq/fetch", "Read", "Bash", "PowerShell", "Agent", "mcp__workiq__retrieve", "mcp__workiq__fetch"]
 ---
 
 # Output-format hard gate

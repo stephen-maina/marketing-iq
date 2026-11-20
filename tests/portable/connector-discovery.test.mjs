@@ -39,9 +39,14 @@ test("CD-03 discovery preserves denial and the narrow explicit-agent tool profil
     // `edit` (2026-11-20, user decision after trials A/B/A4): the only native data-only writer, so the
     // packaged agent can stage review packets for mechanical preflight. packet-transport.md limits it
     // to session transport files; every other broad tool stays excluded.
-    assert.deepEqual(tools, ["read", "execute", "agent", "skill", "edit", "workiq/retrieve", "workiq/fetch"]);
-    for (const tool of tools) {
-        assert.doesNotMatch(tool, /^(?:\*|web|write|search|todo|memory|.*\/\*)$/i, `profile must stay narrow: ${tool}`);
+    // Claude Code names (2026-11-20): the same grants under that host's names (HOST-01 keeps them paired).
+    // `Write` is Claude's half of the `edit` grant: Claude's Edit cannot create the session transport files
+    // that packet-transport.md permits, and Copilot reads Write as an alias of edit, so it adds no reach there.
+    assert.deepEqual(tools, ["read", "execute", "agent", "skill", "edit", "workiq/retrieve", "workiq/fetch",
+        "Read", "Bash", "PowerShell", "Agent", "Skill", "Edit", "Write", "mcp__workiq__retrieve", "mcp__workiq__fetch"]);
+    for (const tool of tools.filter(name => name !== "Write")) {
+        assert.doesNotMatch(tool, /^(?:\*|web|write|search|todo|memory|.*\/\*|mcp__.*__\*|WebFetch|WebSearch)$/i,
+            `profile must stay narrow: ${tool}`);
     }
     assert.match(agent, /never switch providers after denial/);
     assert.match(agent, /Do not read connector configuration or credentials/);
