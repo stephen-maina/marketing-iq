@@ -47,6 +47,15 @@ install WorkIQ, alter MCP configuration, grant consent or broaden permissions.
 The host's ordinary approvals still apply. `execute` is not a sandbox; the
 profile restricts its use by instruction to existing supported helpers.
 
+## Public-web example
+
+`examples\marketing-iq-web.agent.md` requests the host's `web` tools instead of
+WorkIQ. Search results are discovery only; bodies come from fetched pages,
+admitted with `cli.js capture --adapter web` when the host saved them, within
+one official site path. Install and select it exactly like the WorkIQ example
+(`copilot --agent marketing-iq-web`). Public pages are not the client's own
+evidence: product truth still needs the owner's sources.
+
 ## Install the client-owned copy in Copilot CLI
 
 First install Marketing IQ using the main plugin guide. Separately, the client

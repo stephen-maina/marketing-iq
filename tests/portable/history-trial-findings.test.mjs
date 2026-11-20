@@ -56,6 +56,27 @@ test("HT-06 every WorkIQ admission instruction names workiq-capture first, so a 
     assert.match(flat(transport), /2\. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the session's events\.jsonl \(`connector-workflow\.md`\); never stage a WorkIQ handoff/);
 });
 
+test("HT-07 a host-saved connector result is admitted with capture before any staging route (eval E1/E2)", () => {
+    // E1/E2: Microsoft Learn output was saved to a temp file; the agent copied it into a handoff by hand.
+    const flat = text => text.replace(/\s+/g, " ");
+    const general = flat(connector).split("The WorkIQ-specific routing")[0];
+    const captureAt = general.indexOf("cli.js capture --adapter <id>");
+    const stagingAt = general.indexOf("`--input-file <absolute-session-handoff.json>`");
+    assert.ok(captureAt > 0 && stagingAt > 0 && captureAt < stagingAt, "saved-file capture comes before the staging route");
+    assert.match(general, /use `node \.github\\skills\\marketing-iq\\scripts\\portable\\cli\.js capture --adapter <id>/);
+    assert.match(general, /Never copy a saved result into a handoff file/);
+    assert.match(flat(transport), /If the host saved the result to a file, admit it with `cli\.js capture` \(`connector-workflow\.md`\), never by copying it into a handoff/);
+});
+
+test("HT-08 hand-staged bodies mark every skipped span with the capture separator (eval E1/E5)", async () => {
+    // E1/E5: staged bodies were verbatim sentence by sentence but joined non-adjacent passages unmarked.
+    const flat = text => text.replace(/\s+/g, " ");
+    const rule = /Each body is one contiguous passage of the current result; join non-adjacent passages only with a line containing exactly `\[\.\.\.\]`, as capture does/;
+    assert.match(flat(connector), rule);
+    const web = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "examples", "marketing-iq-web.agent.md"), "utf8");
+    assert.match(flat(web), /join non-adjacent passages only with a line containing exactly `\[\.\.\.\]`/);
+});
+
 test("HT-04 current-request means the user named the choice, not that they asked for one (trial A2)", async () => {
     // A2 labelled a recommended audience `current-request` although the request named none.
     const skill = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "SKILL.md"), "utf8");

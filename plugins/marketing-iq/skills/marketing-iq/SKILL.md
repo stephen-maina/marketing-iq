@@ -1541,17 +1541,9 @@ as `SCOPE_MISMATCH`), uses the text after each hit's `- **snippet:** ` marker as
 the body and applies the same admission rules and limits. Never write your own
 PowerShell, node or other script that reads events.jsonl or rebuilds a handoff.
 
-Other adapters, and WorkIQ on hosts without an events.jsonl record: run
-`node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
-on the exact normalized handoff using safe data-only stdin/current permitted
-host-capture transport, or `--input-file <absolute-session-handoff.json>` under
-`references\packet-transport.md` when a permitted native data-only writer is
-actually exposed. Do not put source bodies in shell literals, environment
-variables, test fixtures or unapproved copies.
-
-When the host saved the selected connector's current result to a file (for
-example "Output too large… Saved to: <path>"), prefer
-`node <MIQ_SHARED>\scripts\portable\cli.js capture --adapter <id>
+Any other adapter (for example `microsoft-learn` or `web`) whose current result
+the host saved to a file (for example "Output too large… Saved to: <path>"):
+use `node <MIQ_SHARED>\scripts\portable\cli.js capture --adapter <id>
 --capture-file <that absolute path> --lines <a-b[,c-d]> --source-url <observed URL>
 --scope-url <user scope URL> --scope-kind exact|container --tool <actual tool name>`.
 For WorkIQ, `--tool` is `workiq-retrieve` (fetch metadata is not body evidence)
@@ -1560,12 +1552,26 @@ for those sources.
 View the file, then choose ascending, non-adjacent line ranges that answer the
 question, at most 20,000 characters per source. Never edit, slice, rewrite or copy
 the text yourself; the CLI reads the bytes, joins ranges with `[...]` and applies
-the same admission rules. Quote only from the returned body. Captures older than
+the same admission rules. Never copy a saved result into a handoff file, even
+when a writer is available. Quote only from the returned body. Captures older than
 six hours are rejected as not current. If safe transport is unavailable, block
 with that precise processing gap. This check validates shape, scope and mechanical
 admission, not truth, authentication, authority or semantic fit. Retain all returned
 restrictions/proof gaps and original admitted passages for independent review.
 Never use excluded content to make facts. A ready result does not approve the answer.
+
+Only when neither capture route applies (another adapter whose result came back
+inline, or WorkIQ on a host without an events.jsonl record): run
+`node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
+on the exact normalized handoff using safe data-only stdin/current permitted
+host-capture transport, or `--input-file <absolute-session-handoff.json>` under
+`references\packet-transport.md` when a permitted native data-only writer is
+actually exposed. Copy each body exactly from the current result. Each body is
+one contiguous passage of the current result; join non-adjacent passages only
+with a line containing exactly `[...]`, as capture does, so skipped text stays
+visible to review. Do not put
+source bodies in shell literals, environment variables, test fixtures or
+unapproved copies.
 
 The WorkIQ-specific routing, SharePoint URL handling, metadata calls, channel
 names and M365 instructions below apply ONLY to the WorkIQ adapter. Other
@@ -2706,8 +2712,10 @@ callable schema; do not invent a `create` tool because these instructions name i
    decoded values, exact strings and array order with the retained input.
 2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
    session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
-   file there. For other adapters, admission accepts the existing closed adapter
-   handoff, not a raw connector response:
+   file there. If the host saved the result to a file, admit it with `cli.js
+   capture` (`connector-workflow.md`), never by copying it into a handoff. For
+   other inline results, admission accepts the existing closed adapter handoff,
+   not a raw connector response:
 
    ```powershell
    node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>

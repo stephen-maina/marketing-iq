@@ -44,8 +44,10 @@ callable schema; do not invent a `create` tool because these instructions name i
    decoded values, exact strings and array order with the retained input.
 2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
    session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
-   file there. For other adapters, admission accepts the existing closed adapter
-   handoff, not a raw connector response:
+   file there. If the host saved the result to a file, admit it with `cli.js
+   capture` (`connector-workflow.md`), never by copying it into a handoff. For
+   other inline results, admission accepts the existing closed adapter handoff,
+   not a raw connector response:
 
    ```powershell
    node .github\skills\marketing-iq\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>

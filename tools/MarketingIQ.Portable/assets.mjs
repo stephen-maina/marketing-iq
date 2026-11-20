@@ -16,6 +16,6 @@ export const runtimeAssets = [
     ...["cli.js", "decisions.js", "evidence.js", "instant.js", "json.js", "routes.js", "package.json"]
         .map(name => `.github/skills/marketing-iq/scripts/portable/${name}`),
     ...["adapter-template.mjs", "synthetic-evidence.json", "github-contents-adapter.mjs",
-        "github-contents.synthetic.json", "marketing-iq-workiq.agent.md",
+        "github-contents.synthetic.json", "marketing-iq-workiq.agent.md", "marketing-iq-web.agent.md",
         "marketing-brief.template.json", "marketing-feedback.template.json"].map(name => `.github/skills/marketing-iq/examples/${name}`)
 ];
