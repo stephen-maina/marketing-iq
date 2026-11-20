@@ -58,13 +58,17 @@ Goal: use the host's public-web tools as the `web` adapter, or report the gap.
    publisher's own site found by search and stated before retrieval). Pages
    outside it are excluded by admission; third-party commentary is not product
    truth.
-4. When the host saved a fetched page to a file, admit it with `cli.js capture
-   --adapter web --capture-file <path> --lines <a-b> --source-url <page URL>
-   --scope-url <scope> --scope-kind container --tool web_fetch`; never copy a
-   saved page into a handoff. Only a page returned inline goes into an exact
-   handoff for `evidence --adapter web`, staged with the writer as data; copy
-   text exactly and join non-adjacent passages only with a line containing
-   exactly `[...]`.
+4. Admit a page returned inline from this session's record: `cli.js
+   events-capture --events <absolute events.jsonl> --call <web_fetch toolCallId>
+   --index` to see its line numbers, then `cli.js events-capture --adapter web
+   --events <same> --call <same> --lines '<a-b[,c-d]>' --scope-url <scope>
+   --scope-kind container`, once per page. When the host saved a fetched page to
+   a file, use `cli.js capture --adapter web --capture-file <path> --lines '<a-b[,c-d]>'
+   --source-url <page URL> --scope-url <scope> --scope-kind container --tool
+   web_fetch`. Never copy page text into a handoff in Copilot CLI. Only on a host
+   without an events.jsonl record does an inline page go into an exact handoff
+   for `evidence --adapter web`; copy text exactly and join non-adjacent
+   passages only with a line containing exactly `[...]`.
 5. Stop denied operations; no WorkIQ, shell HTTP or cached substitute.
    `execute` is limited to the shared helpers; `edit` only stages session
    transport files, never workspace, plugin or source files.

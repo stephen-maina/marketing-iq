@@ -2,7 +2,7 @@
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { executeDecision } from "./decisions.js";
-import { captureHandoff, normalizeEvidence, workiqEventsHandoff } from "./evidence.js";
+import { captureHandoff, eventsCaptureHandoff, eventsCaptureIndex, normalizeEvidence, workiqEventsHandoff } from "./evidence.js";
 import { basename } from "node:path";
 import { context, routes } from "./routes.js";
 import { MiqError, ioCode, readAppendOnlyFile, readBoundedFile, readJsonFile, requireThat, stdin, strictJson, utf8 } from "./json.js";
@@ -15,9 +15,12 @@ try {
         "context --use-case launch-decision|field-activation\n" +
         "routes --use-case <workflow> --product-key <label> --topic-key <label> --evidence-need <lane>\n" +
         "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
-        "capture --adapter <id> --capture-file <absolute-host-capture> --lines <a-b[,c-d]> --source-url <https> " +
+        "capture --adapter <id> --capture-file <absolute-host-capture> --lines '<a-b[,c-d]>' --source-url <https> " +
         "--scope-url <https> --scope-kind exact|container --tool <name> [--source-kind <kind>]\n" +
-        "workiq-capture --events <absolute events.jsonl> --select <toolCallId>:<i,j>[+<toolCallId>:<k>]\n" +
+        "workiq-capture --events <absolute events.jsonl> --select '<toolCallId>:<i,j>[+<toolCallId>:<k>]'\n" +
+        "events-capture --events <absolute events.jsonl> --call <toolCallId> --index\n" +
+        "events-capture --adapter <id> --events <absolute events.jsonl> --call <toolCallId> --lines '<a-b[,c-d]>' " +
+        "--scope-url <https> --scope-kind exact|container [--source-kind <kind>]\n" +
         "local-file --file <explicit-synthetic-envelope.json>\n" +
         "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
         "check | --version | --help\n";
@@ -32,7 +35,7 @@ try {
     for (let index = 3; index < process.argv.length; index++) {
         const name = process.argv[index];
         requireThat(name.startsWith("--") && !args.has(name));
-        if (name === "--read-only")
+        if (name === "--read-only" || name === "--index")
             args.set(name, true);
         else {
             const value = process.argv[++index];
@@ -107,6 +110,27 @@ try {
             const { handoff, gaps } = workiqEventsHandoff(utf8(bytes), Date.now(), arg("--select"));
             const admitted = normalizeEvidence(handoff, "workiq");
             admitted.proofGaps.push(...gaps);
+            result = admitted;
+            break;
+        }
+        case "events-capture": {
+            const index = args.get("--index") === true;
+            if (index)
+                options(["--events", "--call"], ["--index"]);
+            else
+                options(["--adapter", "--events", "--call", "--lines", "--scope-url", "--scope-kind"], ["--source-kind"]);
+            requireThat(basename(arg("--events")).toLowerCase() === "events.jsonl");
+            const source = utf8(await readAppendOnlyFile(arg("--events"), 67108864));
+            if (index) {
+                result = eventsCaptureIndex(source, Date.now(), arg("--call"));
+                break;
+            }
+            const { handoff, gap } = eventsCaptureHandoff(source, Date.now(), arg("--call"), {
+                adapter: arg("--adapter"), lines: arg("--lines"), scopeUrl: arg("--scope-url"),
+                scopeKind: arg("--scope-kind"), sourceKind: args.has("--source-kind") ? arg("--source-kind") : "document"
+            });
+            const admitted = normalizeEvidence(handoff, arg("--adapter"));
+            admitted.proofGaps.push(gap);
             result = admitted;
             break;
         }

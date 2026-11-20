@@ -215,18 +215,25 @@ function hostEvents(source: string): Record<string, unknown>[] {
 const field = (value: unknown, name: string): unknown =>
     value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>)[name] : undefined;
 
+// One successful call in the record: exactly one start and one completion for the id.
+function completedCall(events: Record<string, unknown>[], callId: string) {
+    const mine = events.filter(event => field(field(event, "data"), "toolCallId") === callId);
+    const starts = mine.filter(event => event.type === "tool.execution_start");
+    const completes = mine.filter(event => event.type === "tool.execution_complete");
+    requireThat(starts.length === 1 && completes.length === 1 &&
+        field(completes[0]!.data, "success") === true, "CAPTURE_UNAVAILABLE");
+    return { start: starts[0]!, complete: completes[0]! };
+}
+
 export function workiqEventsHandoff(source: string, nowMs: number, select: string) {
     const chosen = selections(select);
     const events = hostEvents(source);
     let scope: string | undefined;
     const sources: unknown[] = [], ids = new Set<string>(), urls = new Set<string>(), gaps: string[] = [];
     for (const { callId, indices } of chosen) {
-        const mine = events.filter(event => field(field(event, "data"), "toolCallId") === callId);
-        const starts = mine.filter(event => event.type === "tool.execution_start");
-        const completes = mine.filter(event => event.type === "tool.execution_complete");
-        requireThat(starts.length === 1 && completes.length === 1 &&
-            field(starts[0]!.data, "toolName") === "workiq-retrieve" &&
-            field(completes[0]!.data, "success") === true, "CAPTURE_UNAVAILABLE");
+        const call = completedCall(events, callId);
+        const starts = [call.start], completes = [call.complete];
+        requireThat(field(starts[0]!.data, "toolName") === "workiq-retrieve", "CAPTURE_UNAVAILABLE");
         const capabilities = field(field(starts[0]!.data, "arguments"), "capabilities");
         const bounds = (Array.isArray(capabilities) ? capabilities : []).flatMap(capability => {
             const items = field(capability, "items_by_url");
@@ -272,4 +279,51 @@ export function workiqEventsHandoff(source: string, nowMs: number, select: strin
     }
     return { handoff: { schemaVersion: 1, adapterId: "workiq", outcome: "ok", scope: { kind: "container", url: scope }, sources },
         gaps };
+}
+
+// Evaluation E1/E5: admit line ranges of any connector's inline result straight from the host's
+// own events.jsonl, so the model never copies a body. Source URL, tool and time come from the
+// record; a call without exactly one https URL argument (a search) is not a body source.
+const savedPointer = /^Output too large to read at once/;
+interface InlineResult { tool: string; sourceUrl: string; observedAt: string; observedMs: number; content: string }
+
+function inlineResult(source: string, nowMs: number, callId: string): InlineResult {
+    requireThat(/^[A-Za-z0-9_-]{1,128}$/.test(callId));
+    const { start, complete } = completedCall(hostEvents(source), callId);
+    const tool = text(field(start.data, "toolName"), 256);
+    const urls: string[] = [];
+    JSON.stringify(field(start.data, "arguments") ?? null, (_key, value) => {
+        if (typeof value === "string" && /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) urls.push(value);
+        return value;
+    });
+    const url = field(field(start.data, "arguments"), "url");
+    requireThat(urls.length === 1 && typeof url === "string" && url === urls[0] && /^https:\/\//i.test(url),
+        "SOURCE_UNIDENTIFIED");
+    const content = field(field(complete.data, "result"), "content");
+    requireThat(typeof content === "string" && content.trim().length > 0, "CAPTURE_UNAVAILABLE");
+    requireThat(!savedPointer.test(content), "RESULT_SAVED_TO_FILE");
+    const observedAt = text(complete.timestamp, 64);
+    instant(observedAt);
+    const observedMs = Date.parse(observedAt);
+    requireThat(Number.isFinite(observedMs), "CAPTURE_UNAVAILABLE");
+    return { tool, sourceUrl: url, observedAt, observedMs, content: text(content, 2097152) };
+}
+
+export function eventsCaptureHandoff(source: string, nowMs: number, callId: string,
+    options: Omit<CaptureOptions, "sourceUrl" | "tool">) {
+    requireThat(!["workiq", "local-file"].includes(label(options.adapter)));
+    const call = inlineResult(source, nowMs, callId);
+    const handoff = captureHandoff(call.content, call.observedMs, nowMs,
+        { ...options, sourceUrl: call.sourceUrl, tool: call.tool });
+    const gap = `${call.sourceUrl}: body is lines ${options.lines} of ${call.tool} call ${callId}, selected by the caller; ` +
+        "the selection is not an independent review.";
+    return { handoff, gap };
+}
+
+// Inline results carry no line numbers; the index lets the caller choose ranges without a second copy.
+export function eventsCaptureIndex(source: string, nowMs: number, callId: string) {
+    const call = inlineResult(source, nowMs, callId);
+    const lines = call.content.split(/\r?\n/).flatMap((line, index) => line.trim() ?
+        [{ n: index + 1, start: line.length > 80 ? `${line.slice(0, 80)}…` : line }] : []);
+    return { status: "ok", tool: call.tool, sourceUrl: call.sourceUrl, observedAt: call.observedAt, lines };
 }

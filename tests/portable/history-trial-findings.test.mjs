@@ -77,6 +77,33 @@ test("HT-08 hand-staged bodies mark every skipped span with the capture separato
     assert.match(flat(web), /join non-adjacent passages only with a line containing exactly `\[\.\.\.\]`/);
 });
 
+test("HT-09 an inline result is admitted with events-capture before any staging route (eval E1/E5)", async () => {
+    // E1/E5: inline fetch bodies were hand-copied; events-capture reads them from the session record instead.
+    const flat = text => text.replace(/\s+/g, " ");
+    const general = flat(connector).split("The WorkIQ-specific routing")[0];
+    const eventsAt = general.indexOf("cli.js events-capture --events");
+    const stagingAt = general.indexOf("`--input-file <absolute-session-handoff.json>`");
+    assert.ok(eventsAt > 0 && eventsAt < stagingAt, "events-capture comes before the staging route");
+    assert.match(general, /Only when no capture route applies \(an inline result on a host without an events\.jsonl record/);
+    assert.match(general, /`SOURCE_UNIDENTIFIED`/);
+    assert.match(general, /`RESULT_SAVED_TO_FILE`/);
+    assert.match(flat(transport), /Any other inline result in Copilot CLI is admitted with `cli\.js events-capture`/);
+    const web = flat(await fs.readFile(join(root, ".github", "skills", "marketing-iq", "examples", "marketing-iq-web.agent.md"), "utf8"));
+    assert.ok(web.indexOf("events-capture --adapter web") < web.indexOf("evidence --adapter web"), "web profile leads with events-capture");
+    assert.match(web, /Never copy page text into a handoff in Copilot CLI/);
+});
+
+test("HT-10 every comma-list template is single-quoted, so the host's command check can parse it (eval E6)", async () => {
+    // E6: an unquoted `--lines 2-10,46-72` was flagged hasParseErrors by Copilot's PowerShell check and
+    // denied unattended, although node would have received it intact. A7 had quoted its --select.
+    const web = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "examples", "marketing-iq-web.agent.md"), "utf8");
+    const adapters = await read("adapters.md");
+    for (const [name, body] of [["connector-workflow", connector], ["web profile", web], ["adapters", adapters]]) {
+        assert.doesNotMatch(body, /--lines <|--select\s+<|--select\s*\n<workiq/, `${name} has an unquoted comma-list template`);
+    }
+    assert.match(connector.replace(/\s+/g, " "), /in PowerShell an unquoted comma builds an array, which the host's command check cannot parse/);
+});
+
 test("HT-04 current-request means the user named the choice, not that they asked for one (trial A2)", async () => {
     // A2 labelled a recommended audience `current-request` although the request named none.
     const skill = await fs.readFile(join(root, ".github", "skills", "marketing-iq", "SKILL.md"), "utf8");

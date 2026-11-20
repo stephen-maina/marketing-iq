@@ -67,7 +67,7 @@ events.jsonl (`connector-workflow.md`); it needs no handoff file:
 
 ```powershell
 node .github\skills\marketing-iq\scripts\portable\cli.js check
-node .github\skills\marketing-iq\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select <workiq-retrieve toolCallId>:<i,j>
+node .github\skills\marketing-iq\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select '<workiq-retrieve toolCallId>:<i,j>'
 ```
 
 On a host without that record, `evidence --adapter workiq` reads the normalized

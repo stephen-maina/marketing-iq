@@ -8,19 +8,19 @@
     },
     {
       "path": "skills/marketing-iq/SKILL.md",
-      "sha256": "8d6b5d220b711720c89575113368dd98c67bef2b0f19e25e69f44bb8e141fcfb"
+      "sha256": "f3e4975d48ebca22ef9623a488d645cd24b53fcaeb4bbf293c2e351f05941be0"
     },
     {
       "path": "skills/marketing-iq-launch-decision/SKILL.md",
-      "sha256": "19e251b3a8558082abefba8492784ac2cf90a95f7ccceaed6985cd41cc242bcf"
+      "sha256": "c6a36b517cc586b0f0225cd8c9e23704a2d1cef2874a0a976f9a61f5ab927a6c"
     },
     {
       "path": "skills/marketing-iq-field-activation/SKILL.md",
-      "sha256": "530f7f57dd70a2ae4d295f3ae71f722e842f43cbc888ab62053548cf46a6d160"
+      "sha256": "2db4cb40315d6ba1a27bf1b583ff8057c67ba539f5ad07454bcd08c51851a878"
     },
     {
       "path": "skills/marketing-iq-campaign-planning/SKILL.md",
-      "sha256": "2e294c46f1cc0a8a5ea966817ab4155bd17701c6e5ee6d35cc655e6fd624396d"
+      "sha256": "a74f8ad339641e838bcfaa4447ff0601840b4198cfa3e7da01492f24a4eaf8be"
     }
   ]
 }

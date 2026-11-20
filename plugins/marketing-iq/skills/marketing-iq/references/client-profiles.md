@@ -51,7 +51,8 @@ profile restricts its use by instruction to existing supported helpers.
 
 `examples\marketing-iq-web.agent.md` requests the host's `web` tools instead of
 WorkIQ. Search results are discovery only; bodies come from fetched pages,
-admitted with `cli.js capture --adapter web` when the host saved them, within
+admitted with `cli.js events-capture --adapter web` from the session record
+(or `cli.js capture --adapter web` when the host saved them to a file), within
 one official site path. Install and select it exactly like the WorkIQ example
 (`copilot --agent marketing-iq-web`). Public pages are not the client's own
 evidence: product truth still needs the owner's sources.

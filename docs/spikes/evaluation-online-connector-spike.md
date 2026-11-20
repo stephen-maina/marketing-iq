@@ -223,12 +223,65 @@ product, with every ground-truth fact correct, all fact quotes verbatim
 client profile is the right route: it selects the intended tools and keeps
 personal skills out.
 
+**Fix 4 (2026-11-20): `events-capture`.** `cli.js events-capture` admits line
+ranges of any connector's inline result straight from the session's
+`events.jsonl`: source URL, tool and time come from the call itself; a call
+without one https `url` argument (search) is `SOURCE_UNIDENTIFIED`; a
+saved-to-file pointer is `RESULT_SAVED_TO_FILE`; `--index` lists line numbers.
+The connector workflow, transport rules and web profile route inline results to
+it before any staging (guards EC-01..07, HT-09; WP-02 updated). Against the
+real E5 record it indexed the HubSpot fetch (141 lines) and admitted a range;
+both real search calls were refused.
+
+**E6 protocol, frozen 2026-11-20 before running (Claude, unattended, one
+launch).** E5 repeated with the rebuilt plugin and profile in a fresh folder
+`C:\work\miq-eval-e6`, same prompt, flags and ground truth (H1–H5). Primary:
+- S2′ every admitted body comes from `events-capture` (or `capture` for a
+  saved page); no `evidence --adapter web` handoff and no page text written by
+  the model. Bodies with skipped text contain `[...]` by construction.
+- All E5 criteria (P1, S1, S3, G1–G5, P1b, N1) re-checked.
+
+**E6 result (session `66ca7c57…`, 4.1 min, unattended): blocked, correctly.**
+The web profile was selected with tools as declared; 1 `web_search` + 1
+`web_fetch` of HubSpot's page; 0 WorkIQ; no personal-skill reads. The agent
+chose the new route unprompted (`events-capture --help`, then `--index` → 141
+lines) and did **not** stage or copy page text. Its admission call
+(`--lines 2-10,46-72,…` unquoted) was denied by the host:
+`permission.requested` showed `hasParseErrors: true`, so the `shell(node)`
+rule could not match and the unattended fallback denied it. PowerShell 7 passes
+the list to node intact; only Copilot's command check fails on the unquoted
+comma (A7 had quoted its `--select`). The agent then returned the blocked
+result, passing the review preflight, rather than falling back to copying.
+
+**Fix 5:** every comma-list template (`--lines`, `--select`) is single-quoted,
+in the CLI help too, with the reason stated (guard HT-10, seen failing first).
+
+**E7 protocol, frozen 2026-11-20 before running:** E6 repeated in a fresh
+folder `C:\work\miq-eval-e7` with the rebuilt plugin and profile; same
+criteria.
+
+**E7 result (session `4d1ae0e2…`, unattended, no permission denials): pass.**
+- P1: `marketing-iq-web` selected, tools as declared. S1: 1 `web_search`
+  (discovery) + 1 `web_fetch` of HubSpot's page; 0 WorkIQ; no personal-skill
+  reads.
+- **S2′:** `events-capture --index` (141 lines; one earlier call without
+  `--call` returned `INVALID_REQUEST` and the agent corrected it), then
+  `events-capture --adapter web --lines '2-10,46-72,116-141,181-197,212-232,250-260'`
+  → `ready`. No handoff file was written; `apply_patch` touched only the review
+  packet. The body is 6 parts joined by `[...]`, each part contiguous and
+  verbatim in the fetched page (6/6) by construction. This closes the seam
+  finding.
+- G1 "BETA", not GA. G2 Marketing Hub Pro/Enterprise users, standalone as the
+  alternative. G3 $50, or $45 yearly, no other subscription. G4 ChatGPT, Gemini,
+  Perplexity. G5 1,850% omitted, no third-party figures.
+- P1b preflight passed twice; trace `history-check:not-run:no-history`. N1:
+  bases `evidence …; assumption`, no `current-request`.
+
 ### Follow-ups after round 2
 
 - [x] Saved-output capture rule (HT-07). Live: not contradicted (E4), not yet exercised.
 - [x] Open-web trial on a non-Microsoft topic (E5).
 - [x] Client-profile trial (E5, web profile in a throwaway workspace).
-- [ ] Live check of the `[...]` join rule (HT-08).
-- [ ] Structural fix for inline results: a CLI capture that takes bodies from
-      the session record by line range for any connector, as `workiq-capture`
-      does for WorkIQ, so no body is copied by the model.
+- [x] Live check of gap marking: superseded by `events-capture`, where `[...]` is inserted by the CLI (E7). HT-08 remains for hosts without an events record (not live-tested).
+- [x] Structural fix for inline results: `events-capture` (fix 4, fix 5; live pass E7).
+- [ ] Saved-output `capture` route still not exercised live (no trial produced a saved fetch).

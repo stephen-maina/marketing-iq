@@ -24,8 +24,9 @@ test("WP-02 search results are discovery only; bodies come from fetched pages th
     const text = flat(web);
     assert.match(text, /`web_search` results are generated summaries: use them only to find pages, never as evidence/);
     assert.match(text, /Admit bodies only from `web_fetch` of the page itself/);
-    assert.match(text, /saved a fetched page to a file, admit it with `cli\.js capture --adapter web --capture-file/);
-    assert.match(text, /never copy a saved page into a handoff/);
+    assert.match(text, /saved a fetched page to a file, use `cli\.js capture --adapter web --capture-file/);
+    assert.match(text, /Admit a page returned inline from this session's record: `cli\.js events-capture/);
+    assert.match(text, /Never copy page text into a handoff in Copilot CLI/);
     assert.match(text, /scope is one official site path/);
 });
 
