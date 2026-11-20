@@ -132,7 +132,10 @@ test("native plugin ships only runtime assets and installation-relative instruct
     assert.match(readme, /--agent marketing-iq:marketing-iq/);
     assert.doesNotMatch(readme, /--agent marketing-iq(?:\s|$)/);
     const files = await fs.readdir(plugin, { recursive: true, withFileTypes: true });
-    assert.equal(files.filter(file => file.isFile()).length, runtimeAssets.length + 4);
+    // +5: README, two manifests (Copilot root, Claude Code .claude-plugin/), installation.json, routes stub.
+    assert.equal(files.filter(file => file.isFile()).length, runtimeAssets.length + 5);
+    assert.deepEqual(files.filter(file => file.isFile() && file.parentPath === join(plugin, ".claude-plugin")).map(file => file.name),
+        ["plugin.json"], "Claude Code manifest is the only file under .claude-plugin/");
     for (const file of files) {
         assert.equal(file.isSymbolicLink(), false);
         if (!file.isFile()) continue;

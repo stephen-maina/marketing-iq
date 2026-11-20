@@ -141,12 +141,18 @@ files.set("skills/marketing-iq/references/sharepoint-source-routes.json",
     Buffer.from(JSON.stringify({ schemaVersion: 1, revision: "portable-v1", routes: [] }, null, 2) + "\n"));
 files.set("README.md", Buffer.from((await fs.readFile(
     join(root, "docs", "integration", "MarketingIQ_Plugin.md"), "utf8")).replaceAll("\r\n", "\n")));
-files.set("plugin.json", Buffer.from(JSON.stringify({
-    $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+const manifest = {
     name: "marketing-iq", version,
     description: "Evidence-led Launch decisions and Field activation using your existing host connector.",
     repository: "https://github.com/stephen-maina/marketing-iq",
     keywords: ["marketing", "launch-decision", "field-activation", "evidence"]
+};
+files.set("plugin.json", Buffer.from(JSON.stringify({
+    $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json", ...manifest
+}, null, 2) + "\n"));
+// Claude Code reads its manifest only from .claude-plugin/; same metadata, plus the author it asks for.
+files.set(".claude-plugin/plugin.json", Buffer.from(JSON.stringify({
+    ...manifest, author: { name: "stephen-maina" }
 }, null, 2) + "\n"));
 files.set("installation.json", Buffer.from(JSON.stringify({
     schemaVersion: 1, version,

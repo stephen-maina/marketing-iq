@@ -26,3 +26,21 @@ test("marketplace resolves its advertised plugin within this repository", async 
         assert.equal(await fs.stat(resolve(target, "com.github.copilot")).then(() => true, () => false), false);
     }
 });
+
+// Claude Code reads manifests only under .claude-plugin/ (`claude plugin validate`, CLI 2.1.126,
+// 2026-11-20: "No manifest found … Expected .claude-plugin/plugin.json"). Copilot keeps the root files.
+test("Claude Code finds a marketplace and manifest that agree with the Copilot ones", async () => {
+    const read = async (...parts) => JSON.parse(await fs.readFile(resolve(root, ...parts), "utf8"));
+    const github = await read(".github", "plugin", "marketplace.json");
+    const claude = await read(".claude-plugin", "marketplace.json");
+    assert.deepEqual(claude, github, "one catalog, published at both hosts' locations");
+    for (const entry of claude.plugins) {
+        const target = resolve(root, entry.source);
+        const copilot = await read(target, "plugin.json");
+        const manifest = await read(target, ".claude-plugin", "plugin.json");
+        assert.equal(manifest.$schema, undefined);
+        for (const key of ["name", "version", "description", "repository"]) assert.equal(manifest[key], copilot[key], key);
+        assert.deepEqual(manifest.keywords, copilot.keywords);
+        assert.equal(manifest.author?.name, claude.owner.name);
+    }
+});

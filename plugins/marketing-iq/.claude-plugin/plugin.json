@@ -1,0 +1,15 @@
+{
+  "name": "marketing-iq",
+  "version": "0.2.0",
+  "description": "Evidence-led Launch decisions and Field activation using your existing host connector.",
+  "repository": "https://github.com/stephen-maina/marketing-iq",
+  "keywords": [
+    "marketing",
+    "launch-decision",
+    "field-activation",
+    "evidence"
+  ],
+  "author": {
+    "name": "stephen-maina"
+  }
+}

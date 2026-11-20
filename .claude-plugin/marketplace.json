@@ -1,0 +1,16 @@
+{
+  "name": "marketing-iq-plugins",
+  "owner": {
+    "name": "stephen-maina"
+  },
+  "metadata": {
+    "description": "Marketing IQ: evidence-led Launch decisions and Field activation for Copilot CLI and Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "marketing-iq",
+      "source": "./plugins/marketing-iq",
+      "description": "Evidence-led Launch decisions and Field activation using your existing host connector."
+    }
+  ]
+}
