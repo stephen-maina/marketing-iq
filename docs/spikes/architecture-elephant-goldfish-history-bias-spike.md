@@ -394,6 +394,85 @@ these groups … F1 and F2 visibly support them"); the audience itself was not
 judged, as the block requires. C2 passed 2/2; C1 flagged 2/2 (6 and 7 flags);
 C3 flagged 2/2. A live plugin trial with the new definition has not been run.
 
+**Trial A3 protocol, frozen 2026-11-19 before running (Claude, unattended).**
+Goal: rerun A with the *packaged* agent after the `current-request` fix. The
+`/agent` picker needs a keyboard, so the agent is selected with
+`agency copilot --agent marketing-iq:marketing-iq` (no `--`), from a scratch
+copy of `plugins/marketing-iq` at commit 065cd68 that also places the
+unchanged agent file under `agents/`, the folder `agency` searches. Same prompt
+and brief as A, with the brief path changed to the fresh folder
+`C:\work\miq-trial-history-a3`; scoped `--allow-tool` (node, workiq), so approval
+prompts are not tested. Launch budget: two attempts. Criteria:
+- P1 the record has `subagent.selected` for `marketing-iq` (else stop).
+- R1 every `workiq-retrieve` carries `items_by_url`.
+- R2 the packaged agent has no writer, so preflight is disclosed as not run,
+  never claimed as run.
+- R3 the first independent review does not fail on an unrequested action report.
+- H1, H3, H4, H5 as in A; H2 judged on brief-only phrases.
+- N1 no strategy section labels a choice `current-request`, because the request
+  names no audience or proposition; a Goldfish flag that relabels it also passes.
+
+**Trial A3 results (session `c3a2c411…`, packaged agent, 39 AI units, 3.3
+minutes).** Launch: a tool-list probe (session `2ad8de0e…`) confirmed selection
+first. A first probe with `--no-sandbox` was refused by Claude's own permission
+check and was not run; both runs kept the sandbox on.
+
+| Criterion | Result |
+| --- | --- |
+| P1 packaged agent selected | Pass: `subagent.selected` `marketing-iq`, tools exactly `read, execute, agent, skill, workiq/retrieve, workiq/fetch` (agency renders its own copy of the agent) |
+| R1 `items_by_url` on every retrieval | Pass: 1/1. (First scored as a fail: the judging script looked for `items_by_url` at the top level, but WorkIQ nests it in `capabilities[0]`. Corrected 2026-11-20 after rechecking A2, A3 and A4: 5/5 retrievals bounded.) |
+| R2 preflight disclosed, not claimed | Pass |
+| R3 no spurious action-report failure | Pass: review passed |
+| H1 Goldfish after brief | Pass: block verbatim; result `pass` |
+| H2 no brief content in Goldfish input | Pass: only the brief path from the verbatim request |
+| H3 no silent carry-over | Pass: "its historical audience and event format were not carried forward" |
+| H4, N1 Basis lines | **Not testable**: the answer was blocked, so it had no strategy sections |
+
+Why it blocked: admission needs the host's own result capture. With no writer,
+the packaged agent read its `events.jsonl` with a PowerShell command, and
+unattended `-p` denied it (`decisionSource: unattended_fallback`) because the
+trial allowed only `shell(node)`. That is a harness limit, not a plugin defect;
+interactively the user is asked. The agent disclosed it honestly as a host
+limitation and not as a SharePoint denial.
+
+Findings: (1) the packaged agent cannot admit evidence unattended unless the
+capture step is a command the run allows; doing that capture through the
+plugin's own node CLI would make `shell(node)` enough. (A second finding,
+that `items_by_url` was skipped, was a scoring error and is withdrawn; see R1.)
+N1 still needs a run that gets past admission.
+
+**Trial A4 protocol, frozen 2026-11-20 before running (user, interactive).**
+Same prompt and brief as A3, brief path `C:\work\miq-trial-history-a4`,
+plugin loaded from `plugins/marketing-iq` at 065cd68 (no scratch copy), agent
+chosen with `/agent`. The user approves the capture read of the session's own
+record and plugin `node` commands, and notes every approval prompt. Criteria:
+the A3 table (P1, R1, R2, R3, H1-H4) plus N1, which needs admission to succeed.
+
+**Trial A4 results (session `de5d420d…`, user-run, packaged agent via `/agent`).**
+
+| Criterion | Result |
+| --- | --- |
+| P1 packaged agent selected | Pass: `subagent.selected` `marketing-iq`, packaged allow-list |
+| R1 `items_by_url` on every retrieval | Pass: 2/2 |
+| Admission | Pass: evidence admitted after the user approved the capture reads; membership recorded as caller-stated and disclosed |
+| R2 preflight disclosed, not claimed | Pass: "not run because no native data-only writer … was available" |
+| R3 no spurious action-report failure | Pass: review 1 failed on a real issue ("Microsoft-sponsored" not in the cited facts); review 2 passed on the fixed pair |
+| H1 Goldfish after brief | Pass: block verbatim |
+| H2 no brief content in Goldfish input | Pass: only the brief path from the verbatim request |
+| H3 no silent carry-over | Pass: "the brief's past audience and event format are not carried forward"; event format, geography and timing left open |
+| H4 Basis lines | Pass: audience `evidence F1, F2, F3, F4; assumption`, proposition `evidence F3, F4; assumption` |
+| N1 no `current-request` on unnamed choices | **Pass**: neither section claims it, where A2 did |
+
+Goldfish: 1 flag. The candidate chose a "one-page use-case decision brief"
+deliverable without a stated reason. It was resolved as a fix: the final text
+drops "one-page" and states the reason ("to make the go/no-go questions
+inspectable"). Minor deviation: the trace reads `history-check:flags=1`
+without the `contested/escalated/fixed` counts the format requires.
+
+Approval prompts: 3, all approved: the plugin's `node` CLI and two compound
+PowerShell reads of the session's own `events.jsonl`. A simple `Get-Content
+-Tail` of the same file ran without a prompt.
+
 ## Status History
 
 | Date | Status | Notes |
@@ -403,6 +482,7 @@ C3 flagged 2/2. A live plugin trial with the new definition has not been run.
 | 2026-11-19 | 🟡 In Progress | Implemented and unit-tested; live trials A and B pending |
 | 2026-11-19 | 🟡 In Progress | Trials A/B: no carry-over, neighbour passes; detection unexercised; 3 fixes pending |
 | 2026-11-19 | 🟡 In Progress | Fixes in; control 7/7, A2 passes; `current-request` narrowed, control rerun 9/9 |
+| 2026-11-20 | 🟡 In Progress | A3 (unattended, packaged) blocked at capture approval; A4 (packaged, `/agent`) passes all criteria incl. N1 |
 
 ---
 
