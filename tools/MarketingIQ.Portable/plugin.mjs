@@ -72,7 +72,7 @@ for (const source of runtimeAssets) {
     const info = await fs.lstat(sourcePath);
     if (!info.isFile() || info.isSymbolicLink()) throw new Error(`Not a regular plugin input: ${source}`);
     const target = source.startsWith(".github/agents/")
-        ? source.replace(".github/agents/", "com.github.copilot/agents/")
+        ? source.replace(".github/agents/", "agents/")
         : source.replace(".github/skills/", "skills/");
     let bytes = await fs.readFile(sourcePath);
     if (source.endsWith(".md")) {
@@ -151,7 +151,7 @@ files.set("plugin.json", Buffer.from(JSON.stringify({
 files.set("installation.json", Buffer.from(JSON.stringify({
     schemaVersion: 1, version,
     entrypoints: [...files].filter(([name]) => name.endsWith("/SKILL.md") ||
-        name === "com.github.copilot/agents/marketing-iq.agent.md")
+        name === "agents/marketing-iq.agent.md")
         .map(([path, bytes]) => ({ path, sha256: createHash("sha256").update(bytes).digest("hex") }))
 }, null, 2) + "\n"));
 

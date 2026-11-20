@@ -62,14 +62,16 @@ operator-reviewed configuration change could expose another connector; do not
 perform one during the marketing workflow. Ordinary workspace composition uses
 its current host context and does not inherit that profile merely by reading it.
 
-Run from the workspace:
+For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own
+events.jsonl (`connector-workflow.md`); it needs no handoff file:
 
 ```powershell
 node <MIQ_SHARED>\scripts\portable\cli.js check
-node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter workiq
+node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select <workiq-retrieve toolCallId>:<i,j>
 ```
 
-`evidence` reads bounded strict UTF-8 JSON on stdin (256 KiB). Use the host's
+On a host without that record, `evidence --adapter workiq` reads the normalized
+handoff as bounded strict UTF-8 JSON on stdin (256 KiB). Use the host's
 safe data-only transport for the exact current result; do not interpolate
 source text into a shell command or save enterprise bodies as sample files.
 No safe transport means blocked processing, not a fabricated helper pass.

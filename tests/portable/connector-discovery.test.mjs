@@ -36,9 +36,12 @@ test("CD-03 discovery preserves denial and the narrow explicit-agent tool profil
     const tools = JSON.parse(/^tools:\s*(.+)$/m.exec(agent)[1]);
     // `skill` loads the plugin's own self-contained instructions (spec §11: plugin files can be unreadable);
     // it grants no retrieval, web or write capability. The intent check below keeps the profile narrow.
-    assert.deepEqual(tools, ["read", "execute", "agent", "skill", "workiq/retrieve", "workiq/fetch"]);
+    // `edit` (2026-11-20, user decision after trials A/B/A4): the only native data-only writer, so the
+    // packaged agent can stage review packets for mechanical preflight. packet-transport.md limits it
+    // to session transport files; every other broad tool stays excluded.
+    assert.deepEqual(tools, ["read", "execute", "agent", "skill", "edit", "workiq/retrieve", "workiq/fetch"]);
     for (const tool of tools) {
-        assert.doesNotMatch(tool, /^(?:\*|web|edit|write|search|todo|memory|.*\/\*)$/i, `profile must stay narrow: ${tool}`);
+        assert.doesNotMatch(tool, /^(?:\*|web|write|search|todo|memory|.*\/\*)$/i, `profile must stay narrow: ${tool}`);
     }
     assert.match(agent, /never switch providers after denial/);
     assert.match(agent, /Do not read connector configuration or credentials/);

@@ -111,7 +111,7 @@ function makeLaunchPacket() {
             sources: [launchSource1.source, launchSource2.source],
             proofGaps: ["The current excerpts do not prove identical availability in every government cloud or guaranteed ROI."],
             rejectedClaims: ["Identical availability in every government cloud is unsupported by the current excerpts."],
-            executionTrace: "mode:m365; context:ok; calls:sharepoint=2,email=0,meeting=0,total=2; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:proposed; review:pending",
+            executionTrace: "mode:m365; context:ok; calls:sharepoint=2,email=0,meeting=0,total=2; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:proposed; review:pending; history-check:not-run:no-history",
         },
         presentationMode: "readable-json",
         readableView: [
@@ -188,7 +188,7 @@ function makeFieldPacket() {
             sources: [fieldSource1.source, fieldSource2.source],
             proofGaps: ["No date, time, registration link, or publication approval is established in the supplied brief."],
             rejectedClaims: ["The current evidence does not prove a prior meeting, attendance, or guaranteed ROI."],
-            executionTrace: "mode:m365; context:ok; calls:sharepoint=2,email=0,meeting=0,total=2; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:proposed; review:pending",
+            executionTrace: "mode:m365; context:ok; calls:sharepoint=2,email=0,meeting=0,total=2; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:proposed; review:pending; history-check:not-run:no-history",
         },
         presentationMode: "readable-json",
         readableView: [
@@ -913,7 +913,7 @@ test("json-only draft still omits readable view but requires real evidence", () 
 test("structural-only validation checks joins, not evidence occurrence or trace review claims", () => {
     const packet = makeLaunchPacket();
     packet.candidate.facts[0].quote = "Not in the supplied body.";
-    packet.candidate.executionTrace = "review:pass";
+    packet.candidate.executionTrace = "review:pass; history-check:pass";
     assert.deepEqual(checker.validateCandidateStructure(packet.candidate), { status: "pass", findings: [] });
     assertFailingResult(validateReviewPacket(packet), "candidate.facts[0].quote", "exactly in matching evidence");
     packet.candidate.facts[0].sourceUrl = "https://example.invalid/mismatch";
@@ -939,7 +939,7 @@ test("artifact CLI saves exact canonical UTF-8 bytes, only canonical fields, and
     for (const packet of [makeLaunchPacket(), makeFieldPacket(), makeBlockedPacket()]) {
         const candidate = packet.candidate;
         candidate.summary = "Caf\u00e9 \u2014 \u653f\u5e9c \ud83c\udf0d PRIVATE-MARKER";
-        candidate.executionTrace = "review:not-run";
+        candidate.executionTrace = "review:not-run; history-check:not-run:no-history";
         const result = runWriter(JSON.stringify(candidate), directory);
         assert.equal(result.status, 0, result.stderr);
         assert.equal(result.stderr, "");
@@ -1190,4 +1190,46 @@ test("HB-05 a history-only choice escalated to the user must be disclosed in pro
     assert.equal(basisFindings(packet).length, 1);
     packet.candidate.proofGaps.push("History check: the CIO audience came only from an earlier task; awaiting your choice.");
     assert.deepEqual(basisFindings(packet), []);
+});
+
+// History-check trace (trial A4, 2026-11-20 recorded "history-check:flags=1" without resolution counts).
+function setHistoryTrace(packet, token) {
+    const kept = packet.candidate.executionTrace.split(";").map(part => part.trim()).filter(part => !part.startsWith("history-check:"));
+    packet.candidate.executionTrace = [...kept, ...(token === null ? [] : [token])].join("; ");
+}
+function traceFindings(packet) {
+    return validateReviewPacket(packet).findings.filter(finding => /history-check/.test(finding.reason));
+}
+
+test("HC-01 draft strategy answers record exactly one history-check outcome; blocked answers are exempt", () => {
+    for (const token of ["history-check:pass", "history-check:pending", "history-check:unavailable",
+        "history-check:not-run:no-history", "history-check:flags=2,contested=1,escalated=0,fixed=1"]) {
+        const packet = makeLaunchPacket(); setHistoryTrace(packet, token);
+        assert.deepEqual(traceFindings(packet), [], token);
+    }
+    const missing = makeFieldPacket(); setHistoryTrace(missing, null);
+    assert.equal(traceFindings(missing).length, 1);
+    const twice = makeLaunchPacket();
+    twice.candidate.executionTrace += "; history-check:pass";
+    assert.equal(traceFindings(twice).length, 1);
+    const blocked = makeBlockedPacket(); setHistoryTrace(blocked, null);
+    assert.deepEqual(traceFindings(blocked), []);
+});
+
+test("HC-02 a flags outcome states how every flag was resolved", () => {
+    for (const token of ["history-check:flags=1", "history-check:flags=0,contested=0,escalated=0,fixed=0",
+        "history-check:flags=2,contested=1,escalated=0,fixed=0", "history-check:flags=1,fixed=1,contested=0,escalated=0",
+        "history-check:passed", "history-check:flags=01,contested=0,escalated=0,fixed=1"]) {
+        const packet = makeLaunchPacket(); setHistoryTrace(packet, token);
+        assert.equal(traceFindings(packet).length, 1, token);
+    }
+});
+
+test("HC-03 a pending-user-choice basis requires an escalation in the trace", () => {
+    const packet = makeLaunchPacket(); setBasis(packet, "audience-recommendation", "Basis: pending-user-choice");
+    packet.candidate.proofGaps.push("History check: the CIO audience came only from an earlier task; awaiting your choice.");
+    setHistoryTrace(packet, "history-check:pass");
+    assert.equal(traceFindings(packet).length, 1);
+    setHistoryTrace(packet, "history-check:flags=1,contested=0,escalated=1,fixed=0");
+    assert.deepEqual(traceFindings(packet), []);
 });

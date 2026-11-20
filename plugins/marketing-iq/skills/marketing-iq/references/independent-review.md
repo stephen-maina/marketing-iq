@@ -252,8 +252,13 @@ Resolve each flag (the Elephant proposes; the user decides history questions):
   and ask the user in the readable view.
 - PROPOSE FIX: widen to the options the evidence supports with trade-offs, or
   relabel the basis truthfully (for example `assumption`).
-Record `history-check:<pass|flags=N,contested=N,escalated=N,fixed=N|unavailable>`
-in executionTrace. An unavailable Goldfish is disclosed in proofGaps, never a pass.
+Record exactly one `history-check:<pass|flags=N,contested=N,escalated=N,fixed=N|unavailable>`
+in executionTrace, all four counts always written; every flag is resolved once,
+so flags = contested + escalated + fixed (for example
+`history-check:flags=1,contested=0,escalated=0,fixed=1`). Before the Goldfish
+has run, the first packet preflight carries `history-check:pending`. A
+`pending-user-choice` basis needs escalated >= 1. The packet checker enforces
+this. An unavailable Goldfish is disclosed in proofGaps, never a pass.
 Positive: the user says "webinar for CIOs again" in this request; basis
 current-request, no flag. Negative: the brief says CIO webinars and the request
 asks for a Field plan for finance leads; a webinar choice is escalated, not assumed.

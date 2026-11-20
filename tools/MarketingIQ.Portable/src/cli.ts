@@ -2,9 +2,10 @@
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { executeDecision } from "./decisions.js";
-import { captureHandoff, normalizeEvidence } from "./evidence.js";
+import { captureHandoff, normalizeEvidence, workiqEventsHandoff } from "./evidence.js";
+import { basename } from "node:path";
 import { context, routes } from "./routes.js";
-import { MiqError, ioCode, readBoundedFile, readJsonFile, requireThat, stdin, strictJson, utf8 } from "./json.js";
+import { MiqError, ioCode, readAppendOnlyFile, readBoundedFile, readJsonFile, requireThat, stdin, strictJson, utf8 } from "./json.js";
 
 const command = process.argv[2];
 try {
@@ -17,11 +18,17 @@ try {
         "evidence --adapter <adapter-id> [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
         "capture --adapter <id> --capture-file <absolute-host-capture> --lines <a-b[,c-d]> --source-url <https> " +
         "--scope-url <https> --scope-kind exact|container --tool <name> [--source-kind <kind>]\n" +
+        "workiq-capture --events <absolute events.jsonl> --select <toolCallId>:<i,j>[+<toolCallId>:<k>]\n" +
         "local-file --file <explicit-synthetic-envelope.json>\n" +
         "decisions --store-root <path> [--read-only] [--input-file <absolute-data.json>] (otherwise JSON on stdin)\n" +
         "check | --version | --help\n";
     const [major, minor, patch] = process.versions.node.split(".").map(Number);
     requireThat(major! > 22 || major === 22 && (minor! > 18 || minor === 18 && patch! >= 0), "NODE_VERSION_UNSUPPORTED");
+    // `<command> --help` alone prints the same usage; models check usage before calling (trial A5).
+    if (process.argv.length === 4 && process.argv[3] === "--help" && !command?.startsWith("--")) {
+        process.stdout.write(help);
+        process.exit(0);
+    }
     const args = new Map<string, string | boolean>();
     for (let index = 3; index < process.argv.length; index++) {
         const name = process.argv[index]!;
@@ -73,6 +80,15 @@ try {
             }), arg("--adapter"));
             admitted.proofGaps.push(`${arg("--source-url")}: body is line ranges ${arg("--lines")} of a host-captured ` +
                 "tool result selected by the caller; the selection is not an independent review.");
+            result = admitted; break;
+        }
+        case "workiq-capture": {
+            options(["--events", "--select"]);
+            requireThat(basename(arg("--events")).toLowerCase() === "events.jsonl");
+            const bytes = await readAppendOnlyFile(arg("--events"), 67108864);
+            const { handoff, gaps } = workiqEventsHandoff(utf8(bytes), Date.now(), arg("--select"));
+            const admitted = normalizeEvidence(handoff, "workiq");
+            admitted.proofGaps.push(...gaps);
             result = admitted; break;
         }
         case "local-file": {

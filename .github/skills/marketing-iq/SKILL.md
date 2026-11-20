@@ -278,7 +278,7 @@ All fields required; no additional fields. Arrays may be empty.
   ],
   "proofGaps": ["Named missing evidence or limits."],
   "rejectedClaims": ["Unsupported requested assertion and reason."],
-  "executionTrace": "mode:m365; context:ok; calls:sharepoint=1,email=0,meeting=0,total=1; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:not-supplied; review:unavailable,owner=current-context,cycle=1,attempts=0/2,invocations=0"
+  "executionTrace": "mode:m365; context:ok; calls:sharepoint=1,email=0,meeting=0,total=1; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:not-supplied; review:unavailable,owner=current-context,cycle=1,attempts=0/2,invocations=0; history-check:not-run:no-history"
 }
 
 Enums: useCase `launch-decision|field-activation`; status `draft|blocked`;

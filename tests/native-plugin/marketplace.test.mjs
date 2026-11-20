@@ -20,6 +20,9 @@ test("marketplace resolves its advertised plugin within this repository", async 
         assert.equal(entry.name, manifest.name);
         assert.equal(entry.description, manifest.description);
         assert.ok((await fs.stat(resolve(target, "skills", "marketing-iq", "SKILL.md"))).isFile());
-        assert.ok((await fs.stat(resolve(target, "com.github.copilot", "agents", "marketing-iq.agent.md"))).isFile());
+        assert.ok((await fs.stat(resolve(target, "agents", "marketing-iq.agent.md"))).isFile());
+        // agency resolves plugin:agent only under agents/; Copilot reads it there too (probe 2026-11-20).
+        // One location only, so no host lists the agent twice.
+        assert.equal(await fs.stat(resolve(target, "com.github.copilot")).then(() => true, () => false), false);
     }
 });

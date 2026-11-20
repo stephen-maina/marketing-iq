@@ -20,7 +20,7 @@ test("maintainer acceptance agents and evaluator oracles stay outside runtime pa
         const profile = await fs.readFile(join(root, path), "utf8");
         assert.deepEqual(JSON.parse(/^tools:\s*(.+)$/m.exec(profile)[1]), tools);
         assert.equal(runtimeAssets.includes(path), false);
-        assert.equal(await fs.stat(join(plugin, "com.github.copilot", "agents", `${name}.agent.md`))
+        assert.equal(await fs.stat(join(plugin, "agents", `${name}.agent.md`))
             .then(() => true, () => false), false);
         assert.match(profile, /# Output-format hard gate[\s\S]*# Role[\s\S]*# Final check/);
     }
@@ -143,14 +143,14 @@ test("native plugin ships only runtime assets and installation-relative instruct
             assert.doesNotMatch(text, /\.github\\skills\\/);
             if (file.name === "SKILL.md" || file.name.endsWith(".agent.md")) {
                 assert.match(text, /# Output-format hard gate[\s\S]*# Role[\s\S]*# Final check/);
-                if (file.name === "SKILL.md" || path.includes(join("com.github.copilot", "agents"))) {
+                if (file.name === "SKILL.md" || file.parentPath === join(plugin, "agents")) {
                     assert.match(text, /<MIQ_SHARED>/);
                     assert.match(text, /Installed assets are read-only/);
                 }
             }
         }
     }
-    const agent = await fs.readFile(join(plugin, "com.github.copilot", "agents", "marketing-iq.agent.md"), "utf8");
+    const agent = await fs.readFile(join(plugin, "agents", "marketing-iq.agent.md"), "utf8");
     const canonical = await fs.readFile(join(root, ".github", "agents", "marketing-iq.agent.md"), "utf8");
     assert.equal(agent.split("\n")[3].trimEnd(), canonical.split("\n")[3].trimEnd());
     const shared = join(plugin, "skills", "marketing-iq");
@@ -239,7 +239,7 @@ test("evidence hard gate is identical and delivered before the role in every sou
 test("installed agent loads workflows through the skill tool, not plugin file reads", async () => {
     // Spec §11/§6: plugin files can be unreadable; the agent body cannot inline 190 KB (30,000-character
     // agent limit), so the installed agent must load the self-contained skills instead.
-    const agent = await fs.readFile(join(plugin, "com.github.copilot", "agents", "marketing-iq.agent.md"), "utf8");
+    const agent = await fs.readFile(join(plugin, "agents", "marketing-iq.agent.md"), "utf8");
     const [, frontmatter, body] = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(agent);
     assert.ok(JSON.parse(/^tools:\s*(.+)$/m.exec(frontmatter)[1]).includes("skill"), "agent must request the skill tool");
     assert.ok(body.length <= 30000, `agent body is ${body.length} characters`);
@@ -350,6 +350,6 @@ test("client WorkIQ example is copyable after relocation and rebuild preserves t
     await fs.cp(plugin, installed, { recursive: true });
     assert.equal(await fs.readFile(destination, "utf8"), customized);
     assert.equal(await fs.readFile(example, "utf8"), profile);
-    assert.equal(await fs.stat(join(installed, "com.github.copilot", "agents", "marketing-iq-workiq.agent.md"))
+    assert.equal(await fs.stat(join(installed, "agents", "marketing-iq-workiq.agent.md"))
         .then(() => true, () => false), false, "example must not auto-install as an active plugin agent");
 });

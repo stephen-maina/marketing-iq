@@ -12,9 +12,13 @@ credentials, excluded content, whole connector responses or transcripts.
 
 Native writers by host: Copilot CLI `apply_patch`; Claude Code `Write`. Only a
 writer in your own callable tool list is exposed; a host's general instructions
-naming one do not make it available to an agent whose allow-list omits it (the
-packaged `marketing-iq` agent has no writer). When one is offered, stage the
-packet with it and run preflight; do not report `no-safe-transport` then.
+naming one do not make it available to an agent whose allow-list omits it. The
+packaged `marketing-iq` agent has `edit` for this staging only: use it to create
+the review packet and other transport files in the current session directory,
+never to create or change workspace, plugin, skill or source files. When a
+writer is offered, stage the packet with it and run preflight; do not report
+`no-safe-transport` then. For WorkIQ evidence prefer `workiq-capture`
+(`connector-workflow.md`), which needs no staged handoff.
 A helper accepting a filename does not create a file-writing capability. A
 profile exposing only read, execute and agent tools may lack the native writer.
 In that context use an existing exact capture, or report
@@ -38,8 +42,10 @@ callable schema; do not invent a `create` tool because these instructions name i
    review packet, or final canonical object needed by the next operation.
    Do not overwrite a prior reviewed pair. Read back complete bytes and compare
    decoded values, exact strings and array order with the retained input.
-2. Evidence admission accepts the existing closed adapter handoff, not a raw
-   connector response:
+2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
+   session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
+   file there. For other adapters, admission accepts the existing closed adapter
+   handoff, not a raw connector response:
 
    ```powershell
    node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>

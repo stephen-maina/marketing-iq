@@ -3,24 +3,24 @@
   "version": "0.2.0",
   "entrypoints": [
     {
-      "path": "com.github.copilot/agents/marketing-iq.agent.md",
-      "sha256": "dd3ce2d233a2e6fe9ef07b808cff58372216160fb16341d5fda9c70e3ce8c1e3"
+      "path": "agents/marketing-iq.agent.md",
+      "sha256": "e56eed51218fe438557a500cfa1b9e67c8bd3da0aa5b33addc448adffd16cfe3"
     },
     {
       "path": "skills/marketing-iq/SKILL.md",
-      "sha256": "02785d25bf1a3e9de4e09e9fa803d9863653671e0fa203d6a50619755ad91751"
+      "sha256": "d777cd78139e08f45a254d38e7dac7750cea502d0a230e0677aafd7b25227266"
     },
     {
       "path": "skills/marketing-iq-launch-decision/SKILL.md",
-      "sha256": "1853e225bb7f6ea7f42bcc782dec4071889bf0af824d4bc34e08583f9728f6dc"
+      "sha256": "5736f53bae49b601f40a3f7452dc05355a65632d822b6e099e67be92e5aa51d5"
     },
     {
       "path": "skills/marketing-iq-field-activation/SKILL.md",
-      "sha256": "8c9bea459eec688fdde0245a4e86a070ec1acbba4504d612d72e12b24ff897d1"
+      "sha256": "2a1bba088a945db07c75cb1463bef651093cbf896228ecb1b3aac7a049a9b7fb"
     },
     {
       "path": "skills/marketing-iq-campaign-planning/SKILL.md",
-      "sha256": "9c1ff75114709ca227258c191ef20206a71d6abebd82f06935bb32bbdeaf0441"
+      "sha256": "69120c153410bf3206bc43c6b60092a0e2e947ac8da8e8f1cbc71db437d9bc39"
     }
   ]
 }

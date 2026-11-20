@@ -18,8 +18,11 @@ test("HT-01 a writer counts only when it is in the agent's own callable tool lis
     assert.match(transport, /Copilot CLI `apply_patch`/);
     assert.match(transport, /Claude Code `Write`/);
     assert.match(transport, /Only a\s+writer in your own callable tool list is exposed/);
-    assert.match(transport, /packaged `marketing-iq` agent has no writer/);
     assert.doesNotMatch(transport, /named in the host's instructions or offered as a tool, it is exposed/);
+    // Item 3 (2026-11-20): the packaged agent now has `edit`, confined to session transport files.
+    const flat = transport.replace(/\s+/g, " ");
+    assert.match(flat, /packaged `marketing-iq` agent has `edit` for this staging only/);
+    assert.match(flat, /never to create or change workspace, plugin, skill or source files/);
 });
 
 test("HT-02 the reviewer checks the action report only when one was requested", () => {
@@ -31,6 +34,26 @@ test("HT-02 the reviewer checks the action report only when one was requested", 
 test("HT-03 every retrieval after folder resolution is bounded structurally, not only in query text", () => {
     assert.match(connector, /pass that folder in `items_by_url` on every `workiq-retrieve` call/);
     assert.match(connector, /Naming the folder only in the query text is not a boundary/);
+});
+
+test("HT-05 WorkIQ admission uses the node workiq-capture route, never a model-written events script (A3/A4)", () => {
+    const flat = connector.replace(/\s+/g, " ");
+    assert.match(flat, /cli\.js workiq-capture --events <absolute path of this session's events\.jsonl> --select/);
+    assert.match(flat, /needs no file writer and no script of your own/);
+    assert.match(flat, /Never write your own PowerShell, node or other script that reads events\.jsonl/);
+});
+
+test("HT-06 every WorkIQ admission instruction names workiq-capture first, so a writer does not invite staging (A6)", async () => {
+    // A6: with `edit` available, the agent followed three passages that teach a staged handoff +
+    // `evidence --input-file` and never tried workiq-capture. Each passage must now lead with it.
+    const flat = text => text.replace(/\s+/g, " ");
+    const adapters = flat(await read("adapters.md"));
+    assert.match(adapters, /For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own events\.jsonl \(`connector-workflow\.md`\)/);
+    assert.doesNotMatch(adapters, /cli\.js check node \.github\\skills\\marketing-iq\\scripts\\portable\\cli\.js evidence --adapter workiq/);
+    const generalRule = flat(connector).split("When the host saved")[0];
+    assert.ok(generalRule.indexOf("workiq-capture") < generalRule.indexOf("evidence --adapter <id>"),
+        "connector-workflow states the WorkIQ route before the general evidence route");
+    assert.match(flat(transport), /2\. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the session's events\.jsonl \(`connector-workflow\.md`\); never stage a WorkIQ handoff/);
 });
 
 test("HT-04 current-request means the user named the choice, not that they asked for one (trial A2)", async () => {

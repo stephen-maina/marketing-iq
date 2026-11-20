@@ -188,3 +188,106 @@ export function captureHandoff(source, modifiedMs, nowMs, options) {
             }]
     };
 }
+// Trials A3/A4: admit WorkIQ hits straight from the host's own events.jsonl record of a
+// workiq-retrieve call, so no model-written script rebuilds source text. The scope is the call's
+// own single items_by_url folder: a retrieval bounded only by query text cannot be admitted.
+const workiqResults = "application/vnd.ms-workiq.retrieval";
+const snippetMarker = "- **snippet:** ";
+function selections(select) {
+    const parts = text(select, 2048).split("+");
+    requireThat(parts.length >= 1 && parts.length <= 10);
+    const seen = new Set();
+    return parts.map(part => {
+        const match = /^([A-Za-z0-9_-]{1,128}):((?:0|[1-9]\d{0,2})(?:,(?:0|[1-9]\d{0,2}))*)$/.exec(part);
+        requireThat(match && !seen.has(match[1]));
+        seen.add(match[1]);
+        const indices = match[2].split(",").map(Number);
+        requireThat(indices.every((value, index) => index === 0 || value > indices[index - 1]));
+        return { callId: match[1], indices };
+    });
+}
+function hostEvents(source) {
+    const lines = source.split("\n");
+    // A live log's last line may still be mid-write; only newline-terminated lines are complete.
+    if (!source.endsWith("\n"))
+        lines.pop();
+    const events = [];
+    for (const line of lines) {
+        const trimmed = line.replace(/\r$/, "");
+        if (!trimmed.trim())
+            continue;
+        let value;
+        try {
+            value = JSON.parse(trimmed);
+        }
+        catch {
+            throw new MiqError("CAPTURE_UNAVAILABLE");
+        }
+        requireThat(value !== null && typeof value === "object" && !Array.isArray(value), "CAPTURE_UNAVAILABLE");
+        events.push(value);
+    }
+    return events;
+}
+const field = (value, name) => value !== null && typeof value === "object" && !Array.isArray(value) ? value[name] : undefined;
+export function workiqEventsHandoff(source, nowMs, select) {
+    const chosen = selections(select);
+    const events = hostEvents(source);
+    let scope;
+    const sources = [], ids = new Set(), urls = new Set(), gaps = [];
+    for (const { callId, indices } of chosen) {
+        const mine = events.filter(event => field(field(event, "data"), "toolCallId") === callId);
+        const starts = mine.filter(event => event.type === "tool.execution_start");
+        const completes = mine.filter(event => event.type === "tool.execution_complete");
+        requireThat(starts.length === 1 && completes.length === 1 &&
+            field(starts[0].data, "toolName") === "workiq-retrieve" &&
+            field(completes[0].data, "success") === true, "CAPTURE_UNAVAILABLE");
+        const capabilities = field(field(starts[0].data, "arguments"), "capabilities");
+        const bounds = (Array.isArray(capabilities) ? capabilities : []).flatMap(capability => {
+            const items = field(capability, "items_by_url");
+            return Array.isArray(items) ? items.map(item => field(item, "url")) : [];
+        });
+        requireThat(bounds.length === 1 && typeof bounds[0] === "string", "RETRIEVAL_NOT_BOUNDED");
+        requireThat(scope === undefined || scope === bounds[0], "SCOPE_MISMATCH");
+        scope = bounds[0];
+        const observedAt = text(completes[0].timestamp, 64);
+        const observedMs = Date.parse(observedAt);
+        instant(observedAt);
+        requireThat(Number.isFinite(observedMs) && observedMs <= nowMs + 300000 && nowMs - observedMs <= captureMaxAgeMs, "CAPTURE_STALE");
+        const result = field(completes[0].data, "result");
+        let payload = field(result, "structuredContent");
+        if (field(payload, workiqResults) === undefined) {
+            try {
+                payload = JSON.parse(text(field(result, "content"), 16777216));
+            }
+            catch {
+                throw new MiqError("CAPTURE_UNAVAILABLE");
+            }
+        }
+        const hits = field(field(payload, workiqResults), "results");
+        requireThat(Array.isArray(hits), "CAPTURE_UNAVAILABLE");
+        for (const index of indices) {
+            requireThat(index < hits.length);
+            const hit = hits[index];
+            const markdown = field(hit, "markdown");
+            const parts = typeof markdown === "string" ? markdown.split(snippetMarker) : [];
+            requireThat(parts.length === 2 && parts[1].trim().length > 0, "SNIPPET_UNAVAILABLE");
+            const sourceId = text(field(hit, "resourceId") ?? field(hit, "id"), 4096);
+            const sourceUrl = text(field(hit, "webUrl"), 4096);
+            requireThat(!ids.has(sourceId) && !urls.has(sourceUrl), "DUPLICATE_SOURCE");
+            ids.add(sourceId);
+            urls.add(sourceUrl);
+            const labelName = field(field(hit, "sensitivityLabel"), "displayName");
+            sources.push({
+                sourceId, sourceUrl, sourceKind: "sharepoint", evidenceKind: "document-excerpt", coverage: "partial-body",
+                retrievedThisSession: true, body: parts[1], versionId: null, locator: null,
+                restrictions: { access: field(hit, "contentProtection") === "allowed" ? "allowed" : "unknown",
+                    usage: "unknown", sensitivityLabel: typeof labelName === "string" ? labelName : null },
+                provenance: { tool: "workiq-retrieve", observedAt, currentResponse: true, locationUrl: scope }
+            });
+        }
+        gaps.push(`Excerpts are results ${indices.join(",")} of workiq-retrieve call ${callId}, selected by the caller; ` +
+            "the selection is not an independent review.");
+    }
+    return { handoff: { schemaVersion: 1, adapterId: "workiq", outcome: "ok", scope: { kind: "container", url: scope }, sources },
+        gaps };
+}

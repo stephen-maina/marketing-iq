@@ -65,6 +65,6 @@ export function candidate(useCase, admitted, directionStatus = "proposed") {
             quote: "Support sign-off is unknown.", versionId: null, locator: null
         }], sources: admitted.sources, proofGaps: admitted.proofGaps,
         rejectedClaims: ["Unknown sign-off is not evidence of approval or failure."],
-        executionTrace: `synthetic:true; review:not-run; adapter:${admitted.adapterId}; live-retrieval:not-run`
+        executionTrace: `synthetic:true; review:not-run; adapter:${admitted.adapterId}; live-retrieval:not-run; history-check:not-run:no-history`
     };
 }

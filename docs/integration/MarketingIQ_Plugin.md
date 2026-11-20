@@ -275,17 +275,24 @@ The export validates the whole packet and writes only its canonical candidate;
 it does not replace the separate semantic reviewer. See
 `references\packet-transport.md` for staging, exact review pairing and read-back.
 Do not embed source or draft bodies into shell commands to manufacture stdin.
-The selected native Marketing IQ agent's current tool profile has no native file
-writer. File-input support does not remove that host capability limit, and the
-plugin does not broaden permissions to hide it.
+The packaged Marketing IQ agent has the `edit` tool only to stage these session
+transport files (the review packet, and handoffs for adapters other than
+WorkIQ), never to change workspace, plugin or source files. Copilot asks before
+writing unless the run allows it, for example
+`--allow-tool 'write(<home>\.copilot\session-state\**)'` for unattended runs.
+WorkIQ evidence is admitted with `cli.js workiq-capture` from the session's own
+`events.jsonl`, which needs no writer and only `node`.
 
 ## Hosts and limits
 
-This distribution uses Agent Plugins 1.0: portable `skills` and a Copilot-specific
-agent in `com.github.copilot\agents`. Copilot CLI is the exercised host.
-Another Agent Plugins-compatible host may load the skills, but its tool mapping,
-safe input transport, separate reviewer and invocation must be verified there.
-Do not assume another CLI loads the Copilot-specific agent.
+This distribution uses Agent Plugins 1.0: portable `skills` and agents in
+`agents\`. Both Copilot CLI (`/agent` or `--agent marketing-iq:marketing-iq`)
+and `agency copilot --agent marketing-iq:marketing-iq` resolve the agent there;
+`agency` does not search `com.github.copilot\agents`, which earlier builds used.
+Copilot CLI is the exercised host. The agent's tool names (for example
+`workiq/retrieve`) are Copilot's, so another Agent Plugins-compatible host may
+list the agent without being able to run it; verify its tool mapping, safe
+input transport, separate reviewer and invocation there.
 
 The plugin does not install/authenticate connectors, grant access, guarantee
 model compliance, send invitations or publish marketing material. It cannot

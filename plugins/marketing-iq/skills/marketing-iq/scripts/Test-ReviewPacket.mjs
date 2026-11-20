@@ -483,6 +483,36 @@ function validateStrategyBasis(result, candidate) {
     });
 }
 
+// One history-check outcome per draft strategy answer. A flags outcome must account for every
+// flag: each is contested, escalated or fixed exactly once. "pending" is the first preflight,
+// which runs before the Goldfish.
+const HISTORY_FLAGS = /^flags=([1-9]\d{0,2}),contested=(0|[1-9]\d{0,2}),escalated=(0|[1-9]\d{0,2}),fixed=(0|[1-9]\d{0,2})$/u;
+const HISTORY_OUTCOMES = new Set(["pass", "pending", "unavailable", "not-run:no-history"]);
+function validateHistoryTrace(result, candidate) {
+    if (!BASIS_SECTIONS.has(candidate.useCase) || candidate.status !== "draft" || typeof candidate.executionTrace !== "string") return;
+    const path = "candidate.executionTrace";
+    const entries = candidate.executionTrace.split(";").map(part => part.trim()).filter(part => part.startsWith("history-check:"));
+    if (entries.length !== 1) {
+        pushFinding(result, path, "must contain exactly one history-check: outcome");
+        return;
+    }
+    const outcome = entries[0].slice("history-check:".length);
+    const counts = HISTORY_FLAGS.exec(outcome);
+    if (!HISTORY_OUTCOMES.has(outcome) && !counts) {
+        pushFinding(result, path, "history-check: must be pass, pending, unavailable, not-run:no-history or flags=N,contested=N,escalated=N,fixed=N");
+        return;
+    }
+    if (counts && Number(counts[1]) !== Number(counts[2]) + Number(counts[3]) + Number(counts[4])) {
+        pushFinding(result, path, "history-check: flags must equal contested + escalated + fixed");
+        return;
+    }
+    const pendingChoice = Array.isArray(candidate.sections) && candidate.sections.some(section =>
+        isPlainObject(section) && typeof section.text === "string" && /^Basis:.*\bpending-user-choice\b/mu.test(section.text));
+    if (pendingChoice && !(counts && Number(counts[3]) > 0)) {
+        pushFinding(result, path, "history-check: a pending-user-choice basis requires escalated >= 1");
+    }
+}
+
 function validateCandidate(result, candidate, evidenceMap) {
     if (!exactKeys(candidate, CANDIDATE_KEYS)) {
         pushFinding(result, "candidate", "candidate must contain only canonical shared-answer fields");
@@ -509,6 +539,7 @@ function validateCandidate(result, candidate, evidenceMap) {
     const factMap = validateFacts(result, candidate, sourceMap, evidenceMap);
     validateSections(result, candidate, factMap);
     validateStrategyBasis(result, candidate);
+    validateHistoryTrace(result, candidate);
     return { factMap, sourceMap };
 }
 

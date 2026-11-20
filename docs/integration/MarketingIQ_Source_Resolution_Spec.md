@@ -735,6 +735,8 @@ TF-01–TF-04, `test:plugin` 18/18, `test:package` 1/1):
 > available for that reason. The trial 2 and 3 records also lack the event.
 > The launch command's `--agent` did not take effect. The packaged agent's
 > allow-list has no writer (see the Elephant-Goldfish spike, trials A/B).
+> Since 2026-11-20 it has `edit` for session transport files only, and WorkIQ
+> evidence uses `cli.js workiq-capture` (no writer needed).
 
 Same launcher, flags and prompt, fresh folder, allow-all off (session
 `f2e246e1…`). The user approved four shell prompts: context and link encoding,

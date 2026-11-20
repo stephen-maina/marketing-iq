@@ -8,7 +8,7 @@ const required = [
     "skills/marketing-iq/SKILL.md",
     "skills/marketing-iq-launch-decision/SKILL.md",
     "skills/marketing-iq-field-activation/SKILL.md",
-    "com.github.copilot/agents/marketing-iq.agent.md"
+    "agents/marketing-iq.agent.md"
 ];
 const allowed = new Set([...required, "skills/marketing-iq-campaign-planning/SKILL.md"]);
 let currentPath;

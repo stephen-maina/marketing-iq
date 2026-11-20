@@ -1,7 +1,7 @@
 ---
 name: marketing-iq
 description: Evidence-led launch decisions and Field kits, plus optional campaign/event and measurement planning. Client-owned connectors; WorkIQ default. Internal review only, not engineering or publication.
-tools: ["read", "execute", "agent", "skill", "workiq/retrieve", "workiq/fetch"]
+tools: ["read", "execute", "agent", "skill", "edit", "workiq/retrieve", "workiq/fetch"]
 ---
 
 # Output-format hard gate

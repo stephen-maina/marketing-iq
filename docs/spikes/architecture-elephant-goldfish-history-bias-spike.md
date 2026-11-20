@@ -466,12 +466,109 @@ the A3 table (P1, R1, R2, R3, H1-H4) plus N1, which needs admission to succeed.
 Goldfish: 1 flag. The candidate chose a "one-page use-case decision brief"
 deliverable without a stated reason. It was resolved as a fix: the final text
 drops "one-page" and states the reason ("to make the go/no-go questions
-inspectable"). Minor deviation: the trace reads `history-check:flags=1`
-without the `contested/escalated/fixed` counts the format requires.
+inspectable"). The trace reads `history-check:flags=1,contested=0,escalated=0,fixed=1`,
+as the format requires. (First reported as `flags=1` without counts: the
+judging script's pattern stopped at the first comma. Corrected 2026-11-20; the
+checker rule in fix 2 below is a guard, not the repair of an observed defect.)
 
 Approval prompts: 3, all approved: the plugin's `node` CLI and two compound
 PowerShell reads of the session's own `events.jsonl`. A simple `Get-Content
 -Tail` of the same file ran without a prompt.
+
+**Fixes after A3/A4 (2026-11-20, uncommitted at protocol time).**
+1. `cli.js workiq-capture --events <events.jsonl> --select <call>:<i,j>` admits
+   WorkIQ hits from the host record in node, taking the scope from the call's
+   single `items_by_url` folder (unbounded calls rejected). On A4's real record
+   it reproduced A4's PowerShell admission exactly (same IDs, bodies, sources).
+2. The packet checker requires exactly one well-formed `history-check:` entry
+   on draft strategy answers, with flags = contested + escalated + fixed.
+3. The packaged agent has `edit` for session transport files only.
+4. Agents ship in `agents/`; plain Copilot and `agency` both resolve them there.
+
+**Trial A5 protocol, frozen 2026-11-20 before running (Claude, unattended).**
+Same prompt and brief as A, brief path `C:\work\miq-trial-history-a5`; plugin
+from `plugins/marketing-iq` in the working tree (no scratch copy);
+`agency copilot --agent marketing-iq:marketing-iq --plugin-dir <plugin>`;
+`--allow-tool` `shell(node)`, `workiq`, `write(<home>\.copilot\session-state\**)`.
+Criteria:
+- P1 packaged agent selected from the shipped layout (fix 4).
+- T1 its callable tools include a writer (fix 3).
+- W1 evidence admitted with `workiq-capture`; no model-written events script;
+  no permission denial (fix 1).
+- R1 every retrieval carries `items_by_url`.
+- R2 `Test-ReviewPacket` runs on a staged packet and its result is reported
+  truthfully (fix 3).
+- C1 the `history-check:` trace entry is well-formed, with all four counts if
+  any flag (fix 2).
+- H1-H3 and N1 as in A4. One launch; no retry beyond it.
+
+**Trial A5 results (session `4d8ff6f5…`, unattended, packaged agent, 76 AI
+units, 7.4 minutes, no permission prompts or denials).**
+
+| Criterion | Result |
+| --- | --- |
+| P1 packaged agent from the shipped layout | Pass: `agency` resolved `agents/` in the working-tree plugin, no scratch copy |
+| T1 writer in its tools | Pass: `edit` listed; `apply_patch` used for session files only |
+| W1 admission with `workiq-capture` | **Fail.** The agent ran `workiq-capture --help`, got `INVALID_REQUEST` (no per-command help) and fell back to staging the handoff with `apply_patch` plus `evidence --input-file`, so the model copied source text. No events script, no denial |
+| R1 bounded retrievals | Pass: 2/2 |
+| R2 packet preflight | Pass: `Test-ReviewPacket --packet-file` ran twice, both `pass`; the first packaged-agent preflight |
+| C1 trace format | Pass: `history-check:flags=3,contested=0,escalated=0,fixed=3`, accepted by the checker |
+| H1 Goldfish | Pass: 3 flags, all fixed. One was the draft's own sentence excluding the brief's Bootcamp direction, a history mention the Goldfish could not verify, so it was removed |
+| H2 Goldfish input | Pass with note: the only brief phrase ("bootcamp") came from the candidate's own text, as in A2 |
+| H3 no carry-over | Pass: no event format, channel or region selected |
+| N1 Basis honesty | Pass: `evidence F1, F2; assumption` and `evidence F2, F3; assumption` |
+
+Follow-up fix: `<command> --help` now prints usage (guard WC-08), so a usage
+check no longer reads as an invalid command. W1 needs one more live run.
+
+**Trial A6 protocol, frozen 2026-11-20 before running (Claude, unattended).**
+Identical to A5 except the brief folder `C:\work\miq-trial-history-a6` and the
+`--help` fix. Primary criterion W1: evidence admitted with `workiq-capture`
+(no staged handoff carrying source text, no events script, no denial). All A5
+criteria are re-checked. One launch.
+
+**Trial A6 results (session `9cae5426…`, unattended, 67 AI units, 4.8 minutes,
+no prompts or denials).** Every A5 pass held: packaged agent from the shipped
+layout with `edit`; 1/1 bounded retrieval; `Test-ReviewPacket --packet-file`
+ran twice, both `pass`; Goldfish `pass` with no brief phrases in its input;
+trace `history-check:pass`; Basis `evidence F1, F2; assumption` and
+`evidence F2; assumption`; no carry-over. **W1 failed again**: the agent did not
+try `workiq-capture` and staged a WorkIQ handoff with `apply_patch` plus
+`evidence --input-file`.
+
+Cause: the loaded Launch skill (3,326 lines) taught admission in four places,
+and three led with the staged route: the general rule ("`evidence --adapter
+<id>` … or `--input-file` when a writer is exposed"), the WorkIQ adapter
+example (`evidence --adapter workiq`) and packet-transport step 2. Before fix 3
+the agent had no writer, so that route was closed; fix 3 opened it. Fixes 1 and
+3 each work but competed. Fix: every WorkIQ admission passage now names
+`workiq-capture` first and says not to stage a WorkIQ handoff, keeping the
+general route for other adapters and hosts without events.jsonl (guard HT-06).
+Needs one more live run.
+
+**Trial A7 protocol, frozen 2026-11-20 before running (Claude, unattended).**
+Identical to A6 except the brief folder `C:\work\miq-trial-history-a7` and the
+HT-06 instruction fix. Primary criterion W1 as in A6; all A5 criteria re-checked.
+One launch. If W1 fails again, stop and report rather than iterate.
+
+**Trial A7 results (session `faada4b5…`, unattended, packaged agent, 75 AI
+units, 8.1 minutes, no permission prompts or denials).**
+
+| Criterion | Result |
+| --- | --- |
+| P1 packaged agent from the shipped layout | Pass |
+| T1 writer in its tools | Pass: `edit`; `apply_patch` used only for the review packet in the session folder |
+| **W1 admission with `workiq-capture`** | **Pass**: `workiq-capture --help` printed usage, then `workiq-capture --events <session events.jsonl> --select …` returned `ready`. No staged WorkIQ handoff, no events script, no denial |
+| R1 bounded retrievals | Pass: 2/2 |
+| R2 packet preflight | Pass: `Test-ReviewPacket --packet-file` ran three times, all `pass` |
+| C1 trace format | Pass: `history-check:flags=3,contested=0,escalated=0,fixed=3` |
+| H1 Goldfish | Pass: 3 flags (one-workflow scope and the one-page format without stated reasons, plus one more), all fixed by stating reasons |
+| H2 Goldfish input | Pass with note: brief phrases came only from the candidate's own text, as in A2/A5 |
+| H3 no carry-over | Pass: "do not establish current fit"; no channel, date or region selected |
+| N1 Basis honesty | Pass: `evidence F1, F2, F3` and `evidence F2, F3; assumption`; no `current-request` |
+| Review | Pass on the first attempt |
+
+All four fixes are now verified live in one unattended packaged-agent run.
 
 ## Status History
 
@@ -483,6 +580,8 @@ PowerShell reads of the session's own `events.jsonl`. A simple `Get-Content
 | 2026-11-19 | 🟡 In Progress | Trials A/B: no carry-over, neighbour passes; detection unexercised; 3 fixes pending |
 | 2026-11-19 | 🟡 In Progress | Fixes in; control 7/7, A2 passes; `current-request` narrowed, control rerun 9/9 |
 | 2026-11-20 | 🟡 In Progress | A3 (unattended, packaged) blocked at capture approval; A4 (packaged, `/agent`) passes all criteria incl. N1 |
+| 2026-11-20 | 🟡 In Progress | Fixes 1-4; A5 unattended packaged run completes, preflight passes; `workiq-capture` unused (help gap, fixed) |
+| 2026-11-20 | 🟡 In Progress | A6: staged route chosen over `workiq-capture` (competing instructions, fixed); A7 passes every criterion unattended |
 
 ---
 

@@ -31,7 +31,22 @@ named in a result. Another adapter is not a fallback for denied WorkIQ access.
 The only bundled local-file adapter is an explicitly selected synthetic sample,
 not a production connector or a way to relabel cached enterprise evidence.
 
-Run `node .github\skills\marketing-iq\scripts\portable\cli.js evidence --adapter <id>`
+For WorkIQ in Copilot CLI, admit hits straight from the host's own record of
+this session, which needs no file writer and no script of your own. Use it even
+when a writer is available; do not stage a WorkIQ handoff file:
+`node .github\skills\marketing-iq\scripts\portable\cli.js workiq-capture
+--events <absolute path of this session's events.jsonl> --select
+<workiq-retrieve toolCallId>:<i,j>[+<toolCallId>:<k>]`. Indices are 0-based,
+ascending positions in that call's results; choose the hits that answer the
+question. The CLI reads only successful `workiq-retrieve` completions, takes the
+scope from that call's single `items_by_url` folder (a call bounded only by
+query text is rejected as `RETRIEVAL_NOT_BOUNDED`; calls with different folders
+as `SCOPE_MISMATCH`), uses the text after each hit's `- **snippet:** ` marker as
+the body and applies the same admission rules and limits. Never write your own
+PowerShell, node or other script that reads events.jsonl or rebuilds a handoff.
+
+Other adapters, and WorkIQ on hosts without an events.jsonl record: run
+`node .github\skills\marketing-iq\scripts\portable\cli.js evidence --adapter <id>`
 on the exact normalized handoff using safe data-only stdin/current permitted
 host-capture transport, or `--input-file <absolute-session-handoff.json>` under
 `references\packet-transport.md` when a permitted native data-only writer is

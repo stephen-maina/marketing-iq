@@ -153,6 +153,32 @@ export async function readBoundedFile(path: string, maximum: number): Promise<{ 
     } finally { await file.close(); }
 }
 
+// A live host log (for example Copilot's events.jsonl) is appended while the session runs, possibly
+// by the very call reading it. Read only the bytes present when the file was opened; later appends
+// are ignored instead of failing the read. Identity and link checks match readBoundedFile.
+export async function readAppendOnlyFile(path: string, maximum: number): Promise<Buffer> {
+    requireThat(isAbsolute(path));
+    if (process.platform === "win32")
+        requireThat(/^[a-z]:[\\/]/iu.test(path) && !path.slice(2).includes(":"));
+    const visible = await fs.lstat(path);
+    requireThat(visible.isFile() && !visible.isSymbolicLink() && visible.nlink === 1 && visible.size > 0);
+    const file = await fs.open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
+    try {
+        const opened = await file.stat();
+        requireThat(opened.isFile() && opened.dev === visible.dev && opened.ino === visible.ino &&
+            opened.nlink === 1 && opened.size <= maximum, "CAPTURE_UNAVAILABLE");
+        const bytes = Buffer.alloc(opened.size);
+        let length = 0;
+        while (length < bytes.length) {
+            const { bytesRead } = await file.read(bytes, length, bytes.length - length, length);
+            if (bytesRead === 0) break;
+            length += bytesRead;
+        }
+        requireThat(length === opened.size, "CAPTURE_UNAVAILABLE");
+        return bytes;
+    } finally { await file.close(); }
+}
+
 export function ioCode(error: unknown): string | undefined {
     return error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : undefined;
 }

@@ -476,7 +476,7 @@ All fields required; no additional fields. Arrays may be empty.
   ],
   "proofGaps": ["Named missing evidence or limits."],
   "rejectedClaims": ["Unsupported requested assertion and reason."],
-  "executionTrace": "mode:m365; context:ok; calls:sharepoint=1,email=0,meeting=0,total=1; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:not-supplied; review:unavailable,owner=current-context,cycle=1,attempts=0/2,invocations=0"
+  "executionTrace": "mode:m365; context:ok; calls:sharepoint=1,email=0,meeting=0,total=1; retrieval:partial; identity:session-review; support:session-review; restrictions:reviewed; direction:not-supplied; review:unavailable,owner=current-context,cycle=1,attempts=0/2,invocations=0; history-check:not-run:no-history"
 }
 
 Enums: useCase `launch-decision|field-activation`; status `draft|blocked`;
@@ -1694,7 +1694,22 @@ named in a result. Another adapter is not a fallback for denied WorkIQ access.
 The only bundled local-file adapter is an explicitly selected synthetic sample,
 not a production connector or a way to relabel cached enterprise evidence.
 
-Run `node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
+For WorkIQ in Copilot CLI, admit hits straight from the host's own record of
+this session, which needs no file writer and no script of your own. Use it even
+when a writer is available; do not stage a WorkIQ handoff file:
+`node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture
+--events <absolute path of this session's events.jsonl> --select
+<workiq-retrieve toolCallId>:<i,j>[+<toolCallId>:<k>]`. Indices are 0-based,
+ascending positions in that call's results; choose the hits that answer the
+question. The CLI reads only successful `workiq-retrieve` completions, takes the
+scope from that call's single `items_by_url` folder (a call bounded only by
+query text is rejected as `RETRIEVAL_NOT_BOUNDED`; calls with different folders
+as `SCOPE_MISMATCH`), uses the text after each hit's `- **snippet:** ` marker as
+the body and applies the same admission rules and limits. Never write your own
+PowerShell, node or other script that reads events.jsonl or rebuilds a handoff.
+
+Other adapters, and WorkIQ on hosts without an events.jsonl record: run
+`node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <id>`
 on the exact normalized handoff using safe data-only stdin/current permitted
 host-capture transport, or `--input-file <absolute-session-handoff.json>` under
 `references\packet-transport.md` when a permitted native data-only writer is
@@ -2529,8 +2544,13 @@ Resolve each flag (the Elephant proposes; the user decides history questions):
   and ask the user in the readable view.
 - PROPOSE FIX: widen to the options the evidence supports with trade-offs, or
   relabel the basis truthfully (for example `assumption`).
-Record `history-check:<pass|flags=N,contested=N,escalated=N,fixed=N|unavailable>`
-in executionTrace. An unavailable Goldfish is disclosed in proofGaps, never a pass.
+Record exactly one `history-check:<pass|flags=N,contested=N,escalated=N,fixed=N|unavailable>`
+in executionTrace, all four counts always written; every flag is resolved once,
+so flags = contested + escalated + fixed (for example
+`history-check:flags=1,contested=0,escalated=0,fixed=1`). Before the Goldfish
+has run, the first packet preflight carries `history-check:pending`. A
+`pending-user-choice` basis needs escalated >= 1. The packet checker enforces
+this. An unavailable Goldfish is disclosed in proofGaps, never a pass.
 Positive: the user says "webinar for CIOs again" in this request; basis
 current-request, no flag. Negative: the brief says CIO webinars and the request
 asks for a Field plan for finance leads; a webinar choice is escalated, not assumed.
@@ -2612,14 +2632,16 @@ operator-reviewed configuration change could expose another connector; do not
 perform one during the marketing workflow. Ordinary workspace composition uses
 its current host context and does not inherit that profile merely by reading it.
 
-Run from the workspace:
+For WorkIQ in Copilot CLI, admit with `workiq-capture` from the session's own
+events.jsonl (`connector-workflow.md`); it needs no handoff file:
 
 ```powershell
 node <MIQ_SHARED>\scripts\portable\cli.js check
-node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter workiq
+node <MIQ_SHARED>\scripts\portable\cli.js workiq-capture --events <absolute events.jsonl> --select <workiq-retrieve toolCallId>:<i,j>
 ```
 
-`evidence` reads bounded strict UTF-8 JSON on stdin (256 KiB). Use the host's
+On a host without that record, `evidence --adapter workiq` reads the normalized
+handoff as bounded strict UTF-8 JSON on stdin (256 KiB). Use the host's
 safe data-only transport for the exact current result; do not interpolate
 source text into a shell command or save enterprise bodies as sample files.
 No safe transport means blocked processing, not a fabricated helper pass.
@@ -2819,9 +2841,13 @@ credentials, excluded content, whole connector responses or transcripts.
 
 Native writers by host: Copilot CLI `apply_patch`; Claude Code `Write`. Only a
 writer in your own callable tool list is exposed; a host's general instructions
-naming one do not make it available to an agent whose allow-list omits it (the
-packaged `marketing-iq` agent has no writer). When one is offered, stage the
-packet with it and run preflight; do not report `no-safe-transport` then.
+naming one do not make it available to an agent whose allow-list omits it. The
+packaged `marketing-iq` agent has `edit` for this staging only: use it to create
+the review packet and other transport files in the current session directory,
+never to create or change workspace, plugin, skill or source files. When a
+writer is offered, stage the packet with it and run preflight; do not report
+`no-safe-transport` then. For WorkIQ evidence prefer `workiq-capture`
+(`connector-workflow.md`), which needs no staged handoff.
 A helper accepting a filename does not create a file-writing capability. A
 profile exposing only read, execute and agent tools may lack the native writer.
 In that context use an existing exact capture, or report
@@ -2845,8 +2871,10 @@ callable schema; do not invent a `create` tool because these instructions name i
    review packet, or final canonical object needed by the next operation.
    Do not overwrite a prior reviewed pair. Read back complete bytes and compare
    decoded values, exact strings and array order with the retained input.
-2. Evidence admission accepts the existing closed adapter handoff, not a raw
-   connector response:
+2. Evidence admission: for WorkIQ in Copilot CLI use `workiq-capture` from the
+   session's events.jsonl (`connector-workflow.md`); never stage a WorkIQ handoff
+   file there. For other adapters, admission accepts the existing closed adapter
+   handoff, not a raw connector response:
 
    ```powershell
    node <MIQ_SHARED>\scripts\portable\cli.js evidence --adapter <selected-id> --input-file <absolute-session-handoff.json>
